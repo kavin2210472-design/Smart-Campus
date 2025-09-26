@@ -1,7 +1,7 @@
 // src/app/dashboard/analytics/page.tsx
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCampusData } from '@/lib/hooks';
 import { Zone, SensorValues } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -26,15 +26,8 @@ export default function AnalyticsPage() {
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
 
   // Default to selecting the first 3 zones if available
-  useState(() => {
+  useEffect(() => {
     if (zones.length > 0) {
-      setSelectedZoneIds(zones.slice(0, 3).map(z => z.id));
-    }
-  });
-
-  // Update selected zones when zones data is loaded
-  useState(() => {
-    if (zones.length > 0 && selectedZoneIds.length === 0) {
       setSelectedZoneIds(zones.slice(0, 3).map(z => z.id));
     }
   }, [zones]);
