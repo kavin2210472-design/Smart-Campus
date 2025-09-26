@@ -12,7 +12,7 @@ import NavLink from '@/components/dashboard/nav-link';
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
-    { href: '#', icon: LineChart, label: 'Analytics' },
+    { href: '/dashboard/analytics', icon: LineChart, label: 'Analytics' },
     { href: '#', icon: AlertTriangle, label: 'Alerts Log', badge: '3' },
     { href: '#', icon: Users, label: 'User Management' },
     { href: '#', icon: Settings, label: 'Settings' },
