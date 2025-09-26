@@ -35,7 +35,6 @@ type AlertsLogPageProps = {
 export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps) {
   const { zones, isLoading: isCampusDataLoading } = useCampusData();
   const [predictedAlerts, setPredictedAlerts] = useState<PredictedAlert[]>([]);
-  const [isPredictionLoading, setPredictionLoading] = useState(false);
 
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -7),
@@ -43,8 +42,7 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
   });
 
   useEffect(() => {
-    if (zones.length > 0) {
-      setPredictionLoading(true);
+    if (!isCampusDataLoading && zones.length > 0) {
       const fetchPredictions = async () => {
         const predictions = await Promise.all(
           zones.map(zone => getAqiPrediction(zone.name, zone.historicalData))
@@ -59,11 +57,10 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
             })) as (PredictedAlert & { zoneName: string, timestamp: string, type: 'predicted' })[];
         
         setPredictedAlerts(newPredictedAlerts);
-        setPredictionLoading(false);
       };
       fetchPredictions();
     }
-  }, [zones]);
+  }, [isCampusDataLoading, zones]);
   
   const allAlerts = useMemo(() => {
     if (isCampusDataLoading) return [];
@@ -148,7 +145,7 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
   }, [isCampusDataLoading, zones, predictedAlerts, date, manualAlerts]);
 
 
-  const isLoading = isCampusDataLoading || isPredictionLoading;
+  const isLoading = isCampusDataLoading;
 
   const renderSkeleton = () => (
     Array.from({ length: 5 }).map((_, i) => (
@@ -216,6 +213,7 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
   const activeAlerts = allAlerts.filter(a => a.type === 'current');
   const predictedAlertsFiltered = allAlerts.filter(a => a.type === 'predicted');
   const historicalAlertsFiltered = allAlerts.filter(a => a.type === 'historical');
+  const manualAlertsFiltered = allAlerts.filter(a => a.type === 'manual');
 
   return (
     <div className="flex flex-col gap-6">
@@ -280,6 +278,7 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
               <TabsTrigger value="active">Active</TabsTrigger>
               <TabsTrigger value="predicted">Predicted</TabsTrigger>
               <TabsTrigger value="historical">Historical</TabsTrigger>
+              <TabsTrigger value="manual">Manual</TabsTrigger>
             </TabsList>
             <div className="mt-4">
                 <TabsContent value="all">
@@ -311,6 +310,14 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
                     {tableHeader}
                     <TableBody>
                       {renderTableContent(historicalAlertsFiltered)}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+                <TabsContent value="manual">
+                   <Table>
+                    {tableHeader}
+                    <TableBody>
+                      {renderTableContent(manualAlertsFiltered)}
                     </TableBody>
                   </Table>
                 </TabsContent>
