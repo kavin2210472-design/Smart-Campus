@@ -28,8 +28,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/analytics', icon: LineChart, label: 'Analytics' },
     { href: '/dashboard/alerts', icon: AlertTriangle, label: 'Alerts Log' },
-    { href: '#', icon: Users, label: 'User Management' },
-    { href: '#', icon: Settings, label: 'Settings' },
+    { href: '/dashboard/user-management', icon: Users, label: 'User Management' },
+    { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
 
   return (
