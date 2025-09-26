@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -33,11 +34,17 @@ export default function Dashboard({ addManualAlert }: DashboardProps) {
     if (zones.length > 0) {
       setPredictionLoading(true);
       const fetchPredictions = async () => {
-        const predictions = await Promise.all(
-          zones.map(zone => getAqiPrediction(zone.name, zone.historicalData))
-        );
-        setPredictedAlerts(predictions.filter(p => p && p.predictedAqi > 100) as PredictedAlert[]);
-        setPredictionLoading(false);
+        try {
+          const predictions = await Promise.all(
+            zones.map(zone => getAqiPrediction(zone.name, zone.historicalData))
+          );
+          setPredictedAlerts(predictions.filter(p => p && p.predictedAqi > 100) as PredictedAlert[]);
+        } catch (error) {
+            console.error("Failed to fetch predictions:", error);
+            setPredictedAlerts([]);
+        } finally {
+            setPredictionLoading(false);
+        }
       };
       fetchPredictions();
       const interval = setInterval(fetchPredictions, 30000); // Fetch predictions every 30 seconds
