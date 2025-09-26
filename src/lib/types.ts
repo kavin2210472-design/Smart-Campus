@@ -1,3 +1,4 @@
+
 export type SensorValues = {
   pm25: number;
   co2: number;
@@ -53,3 +54,5 @@ export type User = {
     role: 'Admin' | 'Manager' | 'Operator';
     avatarUrl: string;
 };
+
+    
