@@ -19,6 +19,16 @@ import { addDays, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
+type DisplayAlert = {
+    id: string;
+    zoneName: string;
+    message: string;
+    timestamp: string;
+    type: 'current' | 'predicted' | 'historical';
+    badgeLabel: string;
+    badgeVariant: 'destructive' | 'outline' | 'secondary';
+};
+
 
 export default function AlertsLogPage() {
   const { zones, isLoading: isCampusDataLoading } = useCampusData();
@@ -29,50 +39,6 @@ export default function AlertsLogPage() {
     from: addDays(new Date(), -7),
     to: new Date(),
   });
-
-  // Mock historical alerts data
-  const mockHistoricalAlerts: (Alert | PredictedAlert)[] = useMemo(() => {
-    if (isCampusDataLoading) return [];
-    const alerts: (Alert | PredictedAlert)[] = [];
-    zones.forEach(zone => {
-        zone.historicalData.forEach(dataPoint => {
-            if (dataPoint.pm25 > 25) {
-                alerts.push({
-                    id: `hist-alert-${zone.id}-${dataPoint.timestamp}`,
-                    zoneId: zone.id,
-                    zoneName: zone.name,
-                    message: 'Unsafe PM2.5 levels detected',
-                    timestamp: new Date(dataPoint.timestamp).toLocaleString(),
-                    type: 'current',
-                });
-            }
-            if (dataPoint.co2 > 2000) {
-                alerts.push({
-                    id: `hist-alert-${zone.id}-${dataPoint.timestamp}`,
-                    zoneId: zone.id,
-                    zoneName: zone.name,
-                    message: 'Unsafe CO2 levels detected',
-                    timestamp: new Date(dataPoint.timestamp).toLocaleString(),
-                    type: 'current',
-                });
-            }
-        });
-    });
-    // Add some mock predicted alerts
-    for (let i = 0; i < 5; i++) {
-        const randomZone = zones[Math.floor(Math.random() * zones.length)];
-        if(randomZone) {
-            alerts.push({
-                zoneName: randomZone.name,
-                predictedAqi: 100 + Math.random() * 50,
-                alertMessage: "High AQI predicted due to simulated weather patterns.",
-                timestamp: addDays(new Date(), -Math.floor(Math.random() * 7)).toLocaleString(),
-                type: 'predicted'
-            } as PredictedAlert & { timestamp: string, type: 'predicted' });
-        }
-    }
-    return alerts.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }, [isCampusDataLoading, zones]);
 
   useEffect(() => {
     if (zones.length > 0) {
@@ -85,7 +51,7 @@ export default function AlertsLogPage() {
             .filter(p => p && p.predictedAqi > 100)
             .map(p => ({
                 ...p,
-                timestamp: new Date().toLocaleString(),
+                timestamp: new Date().toISOString(),
                 type: 'predicted'
             })) as (PredictedAlert & { timestamp: string, type: 'predicted' })[];
         
@@ -95,25 +61,70 @@ export default function AlertsLogPage() {
       fetchPredictions();
     }
   }, [zones]);
+  
+  const allAlerts = useMemo(() => {
+    if (isCampusDataLoading) return [];
 
-  const activeAlerts = useMemo<Alert[]>(() => {
-    return zones
+    // Active Alerts
+    const activeAlerts: DisplayAlert[] = zones
       .filter(zone => zone.status === ZoneStatus.Unsafe)
       .map(zone => ({
-        id: `alert-${zone.id}`,
-        zoneId: zone.id,
+        id: `active-${zone.id}-${new Date().getTime()}`,
         zoneName: zone.name,
         message: 'Unsafe environmental levels detected',
         timestamp: new Date().toLocaleString(),
         type: 'current',
+        badgeLabel: 'Active',
+        badgeVariant: 'destructive'
       }));
-  }, [zones]);
-  
-  const allAlerts = useMemo(() => {
-    const combined = [...activeAlerts, ...predictedAlerts, ...mockHistoricalAlerts];
-    const uniqueAlerts = Array.from(new Map(combined.map(a => [('id' in a ? a.id : a.timestamp + a.zoneName), a])).values());
     
-    return uniqueAlerts.filter(alert => {
+    // Predicted Alerts
+    const futureAlerts: DisplayAlert[] = predictedAlerts.map(p => ({
+        id: `predicted-${p.zoneName}-${p.predictedAqi}-${p.timestamp}`,
+        zoneName: p.zoneName,
+        message: p.alertMessage,
+        timestamp: new Date(p.timestamp).toLocaleString(),
+        type: 'predicted',
+        badgeLabel: 'Predicted',
+        badgeVariant: 'outline'
+    }));
+
+    // Historical Alerts
+    const historicalAlerts: DisplayAlert[] = [];
+    zones.forEach(zone => {
+        zone.historicalData.forEach(dataPoint => {
+            if (dataPoint.pm25 > 25) {
+                historicalAlerts.push({
+                    id: `hist-pm25-${zone.id}-${dataPoint.timestamp}`,
+                    zoneName: zone.name,
+                    message: `Unsafe PM2.5 level: ${dataPoint.pm25.toFixed(1)} µg/m³`,
+                    timestamp: new Date(dataPoint.timestamp).toLocaleString(),
+                    type: 'historical',
+                    badgeLabel: 'Historical',
+                    badgeVariant: 'secondary'
+                });
+            }
+            if (dataPoint.co2 > 2000) {
+                historicalAlerts.push({
+                    id: `hist-co2-${zone.id}-${dataPoint.timestamp}`,
+                    zoneName: zone.name,
+                    message: `Unsafe CO2 level: ${dataPoint.co2.toFixed(0)} ppm`,
+                    timestamp: new Date(dataPoint.timestamp).toLocaleString(),
+                    type: 'historical',
+                    badgeLabel: 'Historical',
+                    badgeVariant: 'secondary'
+                });
+            }
+        });
+    });
+    
+    const combined = [...activeAlerts, ...futureAlerts, ...historicalAlerts];
+
+    const uniqueAlerts = Array.from(new Map(combined.map(a => [a.id, a])).values());
+    
+    const sortedAlerts = uniqueAlerts.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    return sortedAlerts.filter(alert => {
         if(!date?.from) return true;
         const alertDate = new Date(alert.timestamp);
         const from = new Date(date.from);
@@ -123,7 +134,7 @@ export default function AlertsLogPage() {
         return alertDate >= from && alertDate <= to;
     });
 
-  }, [activeAlerts, predictedAlerts, mockHistoricalAlerts, date]);
+  }, [isCampusDataLoading, zones, predictedAlerts, date]);
 
 
   const isLoading = isCampusDataLoading || isPredictionLoading;
@@ -132,30 +143,27 @@ export default function AlertsLogPage() {
     Array.from({ length: 5 }).map((_, i) => (
       <TableRow key={i}>
         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
         <TableCell><Skeleton className="h-4 w-full" /></TableCell>
         <TableCell><Skeleton className="h-4 w-32" /></TableCell>
       </TableRow>
     ))
   );
 
-  const renderAlertRow = (alert: any) => (
-    <TableRow key={alert.id || alert.timestamp + alert.zoneName}>
+  const renderAlertRow = (alert: DisplayAlert) => (
+    <TableRow key={alert.id}>
       <TableCell className="font-medium">
         <div className="flex items-center gap-2">
-            {alert.type === 'current' ? 
-                <AlertTriangle className="h-4 w-4 text-destructive" /> : 
-                <Clock className="h-4 w-4 text-accent" />
-            }
+            {alert.type === 'current' ? <AlertTriangle className="h-4 w-4 text-destructive" /> : <Clock className="h-4 w-4 text-muted-foreground" /> }
             {alert.zoneName}
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={alert.type === 'current' ? 'destructive' : 'outline'} className={cn(alert.type === 'predicted' && 'border-accent text-accent-foreground')}>
-          {alert.type === 'current' ? 'Active' : 'Predicted'}
+        <Badge variant={alert.badgeVariant} className={cn(alert.type === 'predicted' && 'border-accent text-accent-foreground')}>
+          {alert.badgeLabel}
         </Badge>
       </TableCell>
-      <TableCell>{alert.message || alert.alertMessage}</TableCell>
+      <TableCell>{alert.message}</TableCell>
       <TableCell>{alert.timestamp}</TableCell>
     </TableRow>
   );
@@ -222,6 +230,7 @@ export default function AlertsLogPage() {
               <TabsTrigger value="all">All Alerts</TabsTrigger>
               <TabsTrigger value="active">Active</TabsTrigger>
               <TabsTrigger value="predicted">Predicted</TabsTrigger>
+              <TabsTrigger value="historical">Historical</TabsTrigger>
             </TabsList>
             <div className="mt-4">
                 <Table>
@@ -245,6 +254,9 @@ export default function AlertsLogPage() {
                            </TabsContent>
                            <TabsContent value="predicted">
                                 {allAlerts.filter(a => a.type === 'predicted').map(renderAlertRow)}
+                           </TabsContent>
+                           <TabsContent value="historical">
+                                {allAlerts.filter(a => a.type === 'historical').map(renderAlertRow)}
                            </TabsContent>
                         </>
                     )}
