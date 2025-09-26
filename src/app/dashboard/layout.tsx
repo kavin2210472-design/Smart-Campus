@@ -165,7 +165,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-64 flex-col border-r bg-background sm:flex">
         <div className="flex h-16 items-center gap-2 border-b px-6">
-          <EcoWatchLogo />
+          <EcoWatchLogo className="h-7 w-7 text-primary" />
           <div>
             <p className="text-lg font-semibold">EcoWatch</p>
             <p className="text-xs text-muted-foreground">Environmental Monitoring</p>
