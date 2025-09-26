@@ -1,5 +1,6 @@
 // src/ai/flows/send-emergency-alert.ts
 'use server';
+import 'dotenv/config';
 
 /**
  * @fileOverview Defines a Genkit flow for sending emergency alert emails.
