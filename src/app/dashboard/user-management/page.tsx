@@ -149,7 +149,7 @@ export default function UserManagementPage() {
         <Card>
         <CardHeader>
             <div className="flex justify-between items-center">
-                <div>
+                <div className="space-y-1">
                     <CardTitle>Registered Users ({users.length})</CardTitle>
                     <CardDescription>
                         All students and staff registered for emergency alerts
