@@ -72,7 +72,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
            {React.Children.map(children, child => {
               if (React.isValidElement(child)) {
                 // @ts-ignore
-                return React.cloneElement(child, { manualAlerts, addManualAlert });
+                const newProps: { manualAlerts?: Alert[], addManualAlert?: (alert: Omit<Alert, 'id' | 'type'>) => void } = {};
+                if (child.type.name === 'Dashboard') {
+                  newProps.addManualAlert = addManualAlert;
+                }
+                if (child.type.name === 'AlertsLogPage') {
+                   newProps.manualAlerts = manualAlerts;
+                }
+                return React.cloneElement(child, newProps);
               }
               return child;
             })}
