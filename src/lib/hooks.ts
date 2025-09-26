@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -145,8 +146,13 @@ export function useUsers() {
         }, 500);
     }, []);
 
-    const addUser = (user: Omit<User, 'id'>) => {
-        const newUser: User = { ...user, id: `user-${Date.now()}` };
+    const addUser = (user: Omit<User, 'id' | 'avatarUrl'> & { avatarUrl?: string }) => {
+        const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
+        const newUser: User = { 
+            ...user, 
+            id: `user-${Date.now()}`,
+            avatarUrl: user.avatarUrl || `https://picsum.photos/seed/${seed}/40/40`,
+        };
         setUsers(prev => [newUser, ...prev]);
     };
 
@@ -160,3 +166,5 @@ export function useUsers() {
 
     return { users, isLoading, addUser, updateUser, deleteUser };
 }
+
+    

@@ -73,6 +73,10 @@ export default function UserManagementPage() {
             }
             try {
                 const lines = text.split('\n').filter(line => line.trim() !== '');
+                if (lines.length < 2) {
+                    toast({ variant: 'destructive', title: 'Invalid CSV file', description: 'File must contain a header and at least one data row.' });
+                    return;
+                }
                 const header = lines[0].split(',').map(h => h.trim());
                 const nameIndex = header.indexOf('name');
                 const emailIndex = header.indexOf('email');
@@ -86,12 +90,21 @@ export default function UserManagementPage() {
                 let usersAdded = 0;
                 for (let i = 1; i < lines.length; i++) {
                     const data = lines[i].split(',');
-                    const role = data[roleIndex].trim() as User['role'];
-                    if (['Admin', 'Manager', 'Operator'].includes(role)) {
+                    if (data.length < header.length) continue;
+
+                    let role = data[roleIndex]?.trim() as User['role'];
+                    if (!['Admin', 'Manager', 'Operator'].includes(role)) {
+                        role = 'Operator'; // Default role if invalid one is provided
+                    }
+                    
+                    const name = data[nameIndex]?.trim();
+                    const email = data[emailIndex]?.trim();
+
+                    if (name && email && role) {
                         addUser({
-                            name: data[nameIndex].trim(),
-                            email: data[emailIndex].trim(),
-                            role: role,
+                            name,
+                            email,
+                            role,
                         });
                         usersAdded++;
                     }
@@ -261,5 +274,7 @@ export default function UserManagementPage() {
     </>
   );
 }
+
+    
 
     
