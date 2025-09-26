@@ -39,10 +39,15 @@ export type Alert = {
 };
 
 export type PredictedAlert = {
-  zoneName: string;
-  predictedAqi: number;
-  alertMessage: string;
+    metric: 'PM2.5' | 'CO2' | 'VOCs' | 'Noise' | 'General';
+    title: string;
+    description: string;
+    predictedAqi: number;
+    confidence: number;
+    riskLevel: 'Low' | 'Medium' | 'High';
+    timeframe: string;
 };
+
 
 export type CorrectiveAction = {
   title: string;

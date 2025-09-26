@@ -4,28 +4,33 @@
 import { predictAqiAlerts } from "@/ai/flows/predict-aqi-alerts";
 import { suggestCorrectiveActions } from "@/ai/flows/suggest-corrective-actions";
 import { sendEmergencyAlert } from "@/ai/flows/send-emergency-alert";
-import type { SensorValues, HistoricalDataPoint, User, Alert, CorrectiveAction } from "@/lib/types";
+import type { SensorValues, HistoricalDataPoint, User, Alert, CorrectiveAction, PredictedAlert } from "@/lib/types";
 
 export async function getAqiPrediction(zoneName: string, historicalData: HistoricalDataPoint[]) {
   try {
     if (!historicalData || historicalData.length === 0) {
       // Return a default or empty value if there's no data to process
-      return { predictedAqi: 0, alertMessage: "Not enough data for prediction." };
+      return { alerts: [] };
     }
 
     const historicalDataString = historicalData
-      .slice(-5) // Use last 5 data points
-      .map(d => `Timestamp: ${new Date(d.timestamp).toISOString()}, PM2.5: ${d.pm25.toFixed(1)}, CO2: ${d.co2.toFixed(0)}, VOC: ${d.voc.toFixed(0)}`)
+      .slice(-10) // Use last 10 data points for more context
+      .map(d => `Timestamp: ${new Date(d.timestamp).toISOString()}, PM2.5: ${d.pm25.toFixed(1)}, CO2: ${d.co2.toFixed(0)}, VOC: ${d.voc.toFixed(0)}, Temp: ${d.temperature.toFixed(1)}`)
       .join('\n');
 
     const prediction = await predictAqiAlerts({
       zoneName,
       historicalData: historicalDataString,
     });
+
+    if (!prediction) {
+      return { alerts: [] };
+    }
+    
     return prediction;
   } catch (error) {
     console.error(`Error getting AQI prediction for ${zoneName}:`, error);
-    return null;
+    return { alerts: [] };
   }
 }
 
