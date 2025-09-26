@@ -2,14 +2,26 @@
 
 import Link from 'next/link';
 import { Bell, Home, LineChart, Settings, Users, AlertTriangle, Shield } from 'lucide-react';
-import type { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CampusGuardLogo } from '@/components/icons';
 import Header from '@/components/dashboard/header';
 import NavLink from '@/components/dashboard/nav-link';
+import { Alert } from '@/lib/types';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const [manualAlerts, setManualAlerts] = useState<Alert[]>([]);
+
+  const addManualAlert = (alert: Omit<Alert, 'id' | 'type'>) => {
+    const newAlert: Alert = {
+        ...alert,
+        id: `manual-${new Date().getTime()}`,
+        type: 'manual'
+    }
+    setManualAlerts(prev => [...prev, newAlert]);
+  }
+
   const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/analytics', icon: LineChart, label: 'Analytics' },
@@ -57,7 +69,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex flex-col">
         <Header navItems={navItems} />
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background overflow-auto">
-          {children}
+           {React.Children.map(children, child => {
+              if (React.isValidElement(child)) {
+                // @ts-ignore
+                return React.cloneElement(child, { manualAlerts, addManualAlert });
+              }
+              return child;
+            })}
         </main>
       </div>
     </div>

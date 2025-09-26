@@ -32,7 +32,7 @@ export type Alert = {
   zoneName: string;
   message: string;
   timestamp: string;
-  type: 'current' | 'predicted';
+  type: 'current' | 'predicted' | 'manual';
 };
 
 export type PredictedAlert = {

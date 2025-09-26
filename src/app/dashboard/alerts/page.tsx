@@ -1,15 +1,14 @@
-// src/app/dashboard/alerts/page.tsx
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
 import { useCampusData } from '@/lib/hooks';
-import { PredictedAlert, ZoneStatus } from '@/lib/types';
+import { PredictedAlert, ZoneStatus, Alert } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { getAqiPrediction } from '@/app/actions';
-import { AlertTriangle, Clock } from 'lucide-react';
+import { AlertTriangle, Clock, Megaphone } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon } from 'lucide-react';
@@ -24,13 +23,16 @@ type DisplayAlert = {
     zoneName: string;
     message: string;
     timestamp: string;
-    type: 'current' | 'predicted' | 'historical';
+    type: 'current' | 'predicted' | 'historical' | 'manual';
     badgeLabel: string;
-    badgeVariant: 'destructive' | 'outline' | 'secondary';
+    badgeVariant: 'destructive' | 'outline' | 'secondary' | 'default';
 };
 
+type AlertsLogPageProps = {
+    manualAlerts?: Alert[];
+}
 
-export default function AlertsLogPage() {
+export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps) {
   const { zones, isLoading: isCampusDataLoading } = useCampusData();
   const [predictedAlerts, setPredictedAlerts] = useState<PredictedAlert[]>([]);
   const [isPredictionLoading, setPredictionLoading] = useState(false);
@@ -51,7 +53,7 @@ export default function AlertsLogPage() {
             .filter(p => p && p.predictedAqi > 100)
             .map(p => ({
                 ...p,
-                zoneName: p.zoneName, // ensure zoneName is passed
+                zoneName: p.zoneName, 
                 timestamp: new Date().toISOString(),
                 type: 'predicted'
             })) as (PredictedAlert & { zoneName: string, timestamp: string, type: 'predicted' })[];
@@ -66,7 +68,6 @@ export default function AlertsLogPage() {
   const allAlerts = useMemo(() => {
     if (isCampusDataLoading) return [];
 
-    // Active Alerts
     const activeAlerts: DisplayAlert[] = zones
       .filter(zone => zone.status === ZoneStatus.Unsafe)
       .map(zone => ({
@@ -79,7 +80,6 @@ export default function AlertsLogPage() {
         badgeVariant: 'destructive'
       }));
     
-    // Predicted Alerts
     const futureAlerts: DisplayAlert[] = predictedAlerts.map((p, index) => ({
         id: `predicted-${p.zoneName}-${p.predictedAqi}-${p.timestamp}-${index}`,
         zoneName: p.zoneName,
@@ -90,7 +90,6 @@ export default function AlertsLogPage() {
         badgeVariant: 'outline'
     }));
 
-    // Historical Alerts
     const historicalAlerts: DisplayAlert[] = [];
     zones.forEach(zone => {
         zone.historicalData.forEach(dataPoint => {
@@ -118,8 +117,15 @@ export default function AlertsLogPage() {
             }
         });
     });
+
+    const displayManualAlerts: DisplayAlert[] = manualAlerts.map(alert => ({
+        ...alert,
+        type: 'manual',
+        badgeLabel: 'Manual',
+        badgeVariant: 'default'
+    }));
     
-    const combined = [...activeAlerts, ...futureAlerts, ...historicalAlerts];
+    const combined = [...activeAlerts, ...futureAlerts, ...historicalAlerts, ...displayManualAlerts];
 
     const uniqueAlerts = Array.from(new Map(combined.map(a => [a.id, a])).values());
     
@@ -135,7 +141,7 @@ export default function AlertsLogPage() {
         return alertDate >= from && alertDate <= to;
     });
 
-  }, [isCampusDataLoading, zones, predictedAlerts, date]);
+  }, [isCampusDataLoading, zones, predictedAlerts, date, manualAlerts]);
 
 
   const isLoading = isCampusDataLoading || isPredictionLoading;
@@ -151,11 +157,20 @@ export default function AlertsLogPage() {
     ))
   );
 
+  const getIconForType = (type: DisplayAlert['type']) => {
+      switch(type) {
+          case 'current': return <AlertTriangle className="h-4 w-4 text-destructive" />;
+          case 'predicted': return <Clock className="h-4 w-4 text-muted-foreground" />;
+          case 'manual': return <Megaphone className="h-4 w-4 text-primary" />;
+          default: return <Clock className="h-4 w-4 text-muted-foreground" />;
+      }
+  }
+
   const renderAlertRow = (alert: DisplayAlert) => (
     <TableRow key={alert.id}>
       <TableCell className="font-medium">
         <div className="flex items-center gap-2">
-            {alert.type === 'current' ? <AlertTriangle className="h-4 w-4 text-destructive" /> : <Clock className="h-4 w-4 text-muted-foreground" /> }
+            {getIconForType(alert.type)}
             {alert.zoneName}
         </div>
       </TableCell>
@@ -193,6 +208,10 @@ export default function AlertsLogPage() {
       </TableRow>
     </TableHeader>
   );
+
+  const activeAlerts = allAlerts.filter(a => a.type === 'current' || a.type === 'manual');
+  const predictedAlertsFiltered = allAlerts.filter(a => a.type === 'predicted');
+  const historicalAlertsFiltered = allAlerts.filter(a => a.type === 'historical');
 
   return (
     <div className="flex flex-col gap-6">
@@ -271,7 +290,7 @@ export default function AlertsLogPage() {
                    <Table>
                     {tableHeader}
                     <TableBody>
-                      {renderTableContent(allAlerts.filter(a => a.type === 'current'))}
+                      {renderTableContent(activeAlerts)}
                     </TableBody>
                   </Table>
                 </TabsContent>
@@ -279,7 +298,7 @@ export default function AlertsLogPage() {
                    <Table>
                     {tableHeader}
                     <TableBody>
-                      {renderTableContent(allAlerts.filter(a => a.type === 'predicted'))}
+                      {renderTableContent(predictedAlertsFiltered)}
                     </TableBody>
                   </Table>
                 </TabsContent>
@@ -287,7 +306,7 @@ export default function AlertsLogPage() {
                    <Table>
                     {tableHeader}
                     <TableBody>
-                      {renderTableContent(allAlerts.filter(a => a.type === 'historical'))}
+                      {renderTableContent(historicalAlertsFiltered)}
                     </TableBody>
                   </Table>
                 </TabsContent>

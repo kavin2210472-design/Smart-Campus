@@ -13,7 +13,11 @@ import ZoneDetailSheet from '@/components/dashboard/zone-detail-sheet';
 import { getAqiPrediction, getCorrectiveActions } from '../actions';
 import ManualAlertDialog from '@/components/dashboard/manual-alert-dialog';
 
-export default function Dashboard() {
+type DashboardProps = {
+    addManualAlert: (alert: Omit<Alert, 'id' | 'type'>) => void;
+};
+
+export default function Dashboard({ addManualAlert }: DashboardProps) {
   const { zones, isLoading } = useCampusData();
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [isSheetOpen, setSheetOpen] = useState(false);
@@ -114,7 +118,7 @@ export default function Dashboard() {
         correctiveActions={correctiveActions}
         isActionsLoading={isActionsLoading}
       />
-      <ManualAlertDialog open={isManualAlertOpen} onOpenChange={setManualAlertOpen} />
+      <ManualAlertDialog open={isManualAlertOpen} onOpenChange={setManualAlertOpen} onSendAlert={addManualAlert} />
     </>
   );
 }
