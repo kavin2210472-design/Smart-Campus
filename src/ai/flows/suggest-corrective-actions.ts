@@ -30,7 +30,7 @@ const ActionSchema = z.object({
     priority: z.enum(['low', 'medium', 'high']).describe('The priority of the action.'),
     eta: z.string().describe('The estimated time to complete the action (e.g., "15 minutes").'),
     impact: z.string().describe('The expected impact of the action (e.g., "30% reduction").'),
-    icon: z.enum(['wind', 'thermometer', 'air-vent', 'lightbulb', 'fan']).describe('An appropriate icon name for the action.')
+    icon: z.enum(['wind', 'thermometer', 'air-vent', 'lightbulb', 'fan']).describe('An appropriate icon name for the action. Use "air-vent" for both HVAC and Air Purifier actions.')
 });
 
 
@@ -59,6 +59,7 @@ CRITICAL INSTRUCTIONS:
 - If values are nearing a warning threshold, suggest preventative actions (e.g., "Preemptively increase ventilation as occupancy is rising").
 - If values are high, suggest immediate corrective actions (e.g., "Activate all HVAC units to maximum flow rate").
 - Be specific and creative. Instead of "Improve ventilation," suggest "Activate HVAC Unit B-3 to increase air circulation and reduce PM2.5 by an estimated 15%."
+- For any actions related to air purifiers, use the 'air-vent' icon.
 
 Current Sensor Data:
 - PM2.5: {{sensorData.pm25}} µg/m³

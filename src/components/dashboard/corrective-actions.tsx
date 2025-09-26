@@ -4,12 +4,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getCorrectiveActions } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import type { Zone, CorrectiveAction as ActionType } from '@/lib/types';
-import { Wind, Thermometer, Fan, Lightbulb, AirVent, Zap } from 'lucide-react';
+import { Wind, Thermometer, Fan, Lightbulb, AirVent, Zap, Clock, TrendingUp } from 'lucide-react';
 
 const iconMap = {
     wind: Wind,
@@ -25,9 +24,9 @@ type CorrectiveActionsProps = {
 };
 
 const priorityStyles = {
-  high: 'bg-red-100 text-red-700 border-red-200',
-  medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  low: 'bg-blue-100 text-blue-700 border-blue-200',
+  high: 'text-red-600',
+  medium: 'text-yellow-600',
+  low: 'text-blue-600',
 };
 
 export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
@@ -48,10 +47,9 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
   const renderSkeleton = () => (
     <div className="flex flex-col gap-4">
       {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i}>
-          <CardContent className="p-4">
+        <Card key={i} className="p-4">
             <div className="flex items-start gap-4">
-                <Skeleton className="h-8 w-8 rounded-full" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
                 <div className="flex-1 space-y-2">
                     <div className="flex justify-between">
                         <Skeleton className="h-5 w-32" />
@@ -65,7 +63,6 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
                     </div>
                 </div>
             </div>
-          </CardContent>
         </Card>
       ))}
     </div>
@@ -87,34 +84,36 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
         {actions.map((action, index) => {
             const Icon = iconMap[action.icon] || iconMap.default;
             return (
-                <Card key={index}>
-                    <CardContent className="p-4">
-                         <div className="flex items-start gap-4">
-                            <div className='bg-primary/10 text-primary p-2 rounded-full'>
-                                <Icon className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1 space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-semibold">{action.title}</h3>
-                                    <Badge variant="outline" className={cn('capitalize', priorityStyles[action.priority])}>
-                                        {action.priority} priority
-                                    </Badge>
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                    {action.description}
+                <Card key={index} className="p-4">
+                    <div className="flex items-start gap-4">
+                        <Icon className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                        <div className="flex-1 space-y-1">
+                            <div className="flex justify-between items-start">
+                                <h3 className="font-semibold text-base">{action.title}</h3>
+                                <p className={cn('text-sm font-semibold capitalize', priorityStyles[action.priority])}>
+                                    {action.priority} priority
                                 </p>
-                                <div className="flex justify-between items-center text-xs text-muted-foreground pt-2">
-                                    <div className='space-y-1'>
-                                        <p>ETA: <span className='font-semibold text-foreground'>{action.eta}</span></p>
-                                        <p>Impact: <span className='font-semibold text-foreground'>{action.impact}</span></p>
-                                    </div>
-                                    <Button size="sm">
-                                        Execute
-                                    </Button>
-                                </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                                {action.description}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-center text-sm text-muted-foreground pt-4 mt-2 border-t">
+                        <div className='flex gap-4'>
+                            <div className="flex items-center gap-1.5">
+                                <Clock className="h-4 w-4" />
+                                <span className='font-medium text-foreground'>{action.eta}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <TrendingUp className="h-4 w-4" />
+                                <span className='font-medium text-foreground'>{action.impact}</span>
                             </div>
                         </div>
-                    </CardContent>
+                        <Button size="sm">
+                            Execute
+                        </Button>
+                    </div>
                 </Card>
             )
         })}
@@ -124,7 +123,10 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
 
   return (
     <div>
-        <h2 className="text-lg font-semibold mb-4">Suggested Actions</h2>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Lightbulb className="h-5 w-5 text-primary" />
+            Recommended Actions
+        </h2>
         {isLoading ? renderSkeleton() : renderActions()}
     </div>
   )
