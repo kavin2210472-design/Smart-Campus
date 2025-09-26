@@ -25,7 +25,7 @@ const SendEmergencyAlertOutputSchema = z.object({
   confirmationMessage: z.string().describe('A confirmation that the alert was processed and sent successfully.'),
   emailSubject: z.string().describe('The subject line of the email.'),
   emailBody: z.string().describe('The body content of the email.'),
-});
+});-
 export type SendEmergencyAlertOutput = z.infer<typeof SendEmergencyAlertOutputSchema>;
 
 export async function sendEmergencyAlert(input: SendEmergencyAlertInput): Promise<SendEmergencyAlertOutput> {
@@ -64,7 +64,7 @@ const sendEmergencyAlertFlow = ai.defineFlow(
     const gmailAppPass = process.env.GMAIL_APP_PASS;
 
     if (!gmailUser || !gmailAppPass) {
-        throw new Error("Gmail credentials are not configured in the environment variables.");
+        throw new Error("Gmail credentials (GMAIL_USER or GMAIL_APP_PASS) are not configured in the environment variables.");
     }
     
     // 1. Generate the email content using the AI prompt
