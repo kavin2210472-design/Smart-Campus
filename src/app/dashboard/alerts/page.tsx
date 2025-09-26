@@ -183,6 +183,17 @@ export default function AlertsLogPage() {
       return filteredAlerts.map(renderAlertRow);
   }
 
+  const tableHeader = (
+    <TableHeader>
+      <TableRow>
+        <TableHead>Zone</TableHead>
+        <TableHead>Type</TableHead>
+        <TableHead>Message</TableHead>
+        <TableHead>Timestamp</TableHead>
+      </TableRow>
+    </TableHeader>
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -248,36 +259,38 @@ export default function AlertsLogPage() {
               <TabsTrigger value="historical">Historical</TabsTrigger>
             </TabsList>
             <div className="mt-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Zone</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Message</TableHead>
-                      <TableHead>Timestamp</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                   <TabsContent value="all">
-                      <TableBody>
-                        {renderTableContent(allAlerts)}
-                      </TableBody>
-                   </TabsContent>
-                   <TabsContent value="active">
-                      <TableBody>
-                        {renderTableContent(allAlerts.filter(a => a.type === 'current'))}
-                      </TableBody>
-                   </TabsContent>
-                   <TabsContent value="predicted">
-                      <TableBody>
-                        {renderTableContent(allAlerts.filter(a => a.type === 'predicted'))}
-                      </TableBody>
-                   </TabsContent>
-                   <TabsContent value="historical">
-                      <TableBody>
-                        {renderTableContent(allAlerts.filter(a => a.type === 'historical'))}
-                      </TableBody>
-                   </TabsContent>
-                </Table>
+                <TabsContent value="all">
+                  <Table>
+                    {tableHeader}
+                    <TableBody>
+                      {renderTableContent(allAlerts)}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+                <TabsContent value="active">
+                   <Table>
+                    {tableHeader}
+                    <TableBody>
+                      {renderTableContent(allAlerts.filter(a => a.type === 'current'))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+                <TabsContent value="predicted">
+                   <Table>
+                    {tableHeader}
+                    <TableBody>
+                      {renderTableContent(allAlerts.filter(a => a.type === 'predicted'))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+                <TabsContent value="historical">
+                   <Table>
+                    {tableHeader}
+                    <TableBody>
+                      {renderTableContent(allAlerts.filter(a => a.type === 'historical'))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
             </div>
           </Tabs>
         </CardContent>
