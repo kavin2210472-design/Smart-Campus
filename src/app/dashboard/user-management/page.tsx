@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Download, PlusCircle, AlertCircle as AlertCircleIcon } from 'lucide-react';
+import { Download, PlusCircle, AlertCircle as AlertCircleIcon, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -121,13 +121,20 @@ export default function UserManagementPage() {
             <CardHeader>
                 <CardTitle>Upload Users</CardTitle>
                 <CardDescription>
-                    Upload a CSV file with student and staff email addresses. Format: name, email, type (student/staff)
+                    Upload a CSV file with student and staff email addresses. Format: name, email, role (student/staff)
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-4">
-                        <Input id="csv-upload" type="file" accept=".csv" onChange={handleCsvUpload} className="max-w-xs" />
+                        <label htmlFor="csv-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-10 h-10 mb-3 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                <p className="text-xs text-muted-foreground">CSV (MAX. 800x400px)</p>
+                            </div>
+                            <Input id="csv-upload" type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
+                        </label>
                         <Button variant="outline" onClick={handleDownloadSample}>
                             <Download className="mr-2 h-4 w-4" />
                             Sample CSV
@@ -149,7 +156,7 @@ export default function UserManagementPage() {
         <Card>
         <CardHeader>
             <div className="flex justify-between items-center">
-                <div className="space-y-1">
+                <div className="space-y-1 mb-4">
                     <CardTitle>Registered Users ({users.length})</CardTitle>
                     <CardDescription>
                         All students and staff registered for emergency alerts
