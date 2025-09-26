@@ -45,3 +45,11 @@ export type CorrectiveAction = {
   zoneName: string;
   actions: string[];
 };
+
+export type User = {
+    id: string;
+    name: string;
+    email: string;
+    role: 'Admin' | 'Manager' | 'Operator';
+    avatarUrl: string;
+};

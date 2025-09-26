@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ZoneStatus } from './types';
-import type { Zone, SensorValues, HistoricalDataPoint } from './types';
+import type { Zone, SensorValues, HistoricalDataPoint, User } from './types';
 
 // --- Configuration ---
 const ZONES_CONFIG: Omit<Zone, 'status' | 'currentData' | 'historicalData'>[] = [
@@ -121,4 +121,42 @@ export function useCampusData() {
   }, [isLoading]);
 
   return { zones, isLoading };
+}
+
+
+// --- User Data Hook ---
+const MOCK_USERS: User[] = [
+    { id: 'user-1', name: 'Alex Johnson', email: 'alex.j@example.com', role: 'Admin', avatarUrl: 'https://picsum.photos/seed/user-1/40/40' },
+    { id: 'user-2', name: 'Maria Garcia', email: 'maria.g@example.com', role: 'Manager', avatarUrl: 'https://picsum.photos/seed/user-2/40/40' },
+    { id: 'user-3', name: 'James Smith', email: 'james.s@example.com', role: 'Operator', avatarUrl: 'https://picsum.photos/seed/user-3/40/40' },
+    { id: 'user-4', name: 'Priya Patel', email: 'priya.p@example.com', role: 'Operator', avatarUrl: 'https://picsum.photos/seed/user-4/40/40' },
+    { id: 'user-5', name: 'David Chen', email: 'david.c@example.com', role: 'Operator', avatarUrl: 'https://picsum.photos/seed/user-5/40/40' },
+];
+
+export function useUsers() {
+    const [users, setUsers] = useState<User[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        // Simulate fetching data
+        setTimeout(() => {
+            setUsers(MOCK_USERS);
+            setIsLoading(false);
+        }, 500);
+    }, []);
+
+    const addUser = (user: Omit<User, 'id'>) => {
+        const newUser: User = { ...user, id: `user-${Date.now()}` };
+        setUsers(prev => [newUser, ...prev]);
+    };
+
+    const updateUser = (userId: string, updatedInfo: Partial<User>) => {
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updatedInfo } : u));
+    };
+
+    const deleteUser = (userId: string) => {
+        setUsers(prev => prev.filter(u => u.id !== userId));
+    };
+
+    return { users, isLoading, addUser, updateUser, deleteUser };
 }
