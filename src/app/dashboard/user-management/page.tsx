@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -47,7 +47,7 @@ export default function UserManagementPage() {
         }
     };
 
-    const handleFormSubmit = (values: Omit<User, 'id'>) => {
+    const handleFormSubmit = (values: Omit<User, 'id' | 'avatarUrl'> & { avatarUrl?: string }) => {
         if (editingUser) {
             updateUser(editingUser.id, values);
             toast({ title: 'User Updated', description: `Details for ${values.name} have been updated.` });
@@ -236,18 +236,32 @@ export default function UserManagementPage() {
                 <CardHeader>
                     <CardTitle>Bulk Import</CardTitle>
                     <CardDescription>
-                        Add multiple users at once by uploading a CSV file. The file must contain 'name', 'email', and 'role' columns.
+                        Add multiple users by uploading a CSV file.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid w-full max-w-sm items-center gap-1.5">
-                        <Label htmlFor="csv-upload" className="sr-only">Upload CSV</Label>
-                        <Input id="csv-upload" type="file" accept=".csv" onChange={handleCsvUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+                    <div className="flex items-center justify-center w-full">
+                        <Label
+                            htmlFor="csv-upload"
+                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                        >
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground">
+                                    <span className="font-semibold">Click to upload</span> or drag and drop
+                                </p>
+                                <p className="text-xs text-muted-foreground">CSV file (MAX. 800x400px)</p>
+                            </div>
+                            <Input id="csv-upload" type="file" className="hidden" accept=".csv" onChange={handleCsvUpload} />
+                        </Label>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                        Example CSV format:<br/>
-                        <code className="bg-muted p-1 rounded">name,email,role</code><br/>
-                        <code className="bg-muted p-1 rounded">John Doe,john@example.com,Operator</code>
+
+                    <p className="text-xs text-muted-foreground mt-4">
+                        File must contain 'name', 'email', and 'role' columns.
+                        <br/>
+                        Example format: 
+                        <code className="bg-muted p-1 rounded text-xs">name,email,role</code>, 
+                        <code className="bg-muted p-1 rounded text-xs">"John Doe",john@example.com,Operator</code>
                     </p>
                 </CardContent>
             </Card>
@@ -278,3 +292,5 @@ export default function UserManagementPage() {
     </>
   );
 }
+
+    
