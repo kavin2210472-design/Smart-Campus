@@ -130,36 +130,57 @@ const MOCK_USERS: User[] = [];
 
 let userCounter = MOCK_USERS.length + 1;
 
+// The state needs to be managed outside the hook to be shared across components.
+let inMemoryUsers: User[] = [...MOCK_USERS];
+const listeners: Set<(users: User[]) => void> = new Set();
+
+const broadcastUsers = () => {
+    listeners.forEach(listener => listener(inMemoryUsers));
+};
+
+export const addUser = (user: Omit<User, 'id' | 'avatarUrl'>) => {
+    const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
+    const id = `user-${Date.now()}-${userCounter++}-${Math.random()}`;
+    const newUser: User = { 
+        ...user, 
+        id,
+        avatarUrl: `https://picsum.photos/seed/${seed}/40/40`,
+    };
+    inMemoryUsers = [newUser, ...inMemoryUsers];
+    broadcastUsers();
+};
+
+export const updateUser = (userId: string, updatedInfo: Partial<Omit<User, 'id'>>) => {
+    inMemoryUsers = inMemoryUsers.map(u => u.id === userId ? { ...u, ...updatedInfo } : u);
+    broadcastUsers();
+};
+
+export const deleteUser = (userId: string) => {
+    inMemoryUsers = inMemoryUsers.filter(u => u.id !== userId);
+    broadcastUsers();
+};
+
 export function useUsers() {
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<User[]>(inMemoryUsers);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         // Simulate fetching data
-        setTimeout(() => {
-            setUsers(MOCK_USERS);
+        const timeout = setTimeout(() => {
+            setUsers(inMemoryUsers);
             setIsLoading(false);
         }, 500);
-    }, []);
 
-    const addUser = (user: Omit<User, 'id' | 'avatarUrl'>) => {
-        const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
-        const id = `user-${Date.now()}-${userCounter++}-${Math.random()}`;
-        const newUser: User = { 
-            ...user, 
-            id,
-            avatarUrl: `https://picsum.photos/seed/${seed}/40/40`,
+        const listener = (newUsers: User[]) => {
+            setUsers(newUsers);
         };
-        setUsers(prev => [newUser, ...prev]);
-    };
+        listeners.add(listener);
 
-    const updateUser = (userId: string, updatedInfo: Partial<Omit<User, 'id'>>) => {
-        setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updatedInfo } : u));
-    };
-
-    const deleteUser = (userId: string) => {
-        setUsers(prev => prev.filter(u => u.id !== userId));
-    };
+        return () => {
+            listeners.delete(listener);
+            clearTimeout(timeout);
+        };
+    }, []);
 
     return { users, isLoading, addUser, updateUser, deleteUser };
 }

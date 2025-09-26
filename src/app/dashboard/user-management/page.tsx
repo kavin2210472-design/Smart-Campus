@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useUsers } from '@/lib/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -16,9 +15,17 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import UserForm from '@/components/dashboard/user-form';
+import { useUsers } from '@/lib/hooks';
 
-export default function UserManagementPage() {
-    const { users, isLoading, addUser, updateUser, deleteUser } = useUsers();
+type UserManagementPageProps = {
+    users: User[];
+    addUser: (user: Omit<User, 'id' | 'avatarUrl'>) => void;
+    updateUser: (userId: string, updatedInfo: Partial<Omit<User, 'id'>>) => void;
+    deleteUser: (userId: string) => void;
+};
+
+export default function UserManagementPage({ users, addUser, updateUser, deleteUser }: UserManagementPageProps) {
+    const { isLoading } = useUsers();
     const { toast } = useToast();
     const [csvError, setCsvError] = useState<string | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -146,6 +153,92 @@ export default function UserManagementPage() {
     <div className="grid gap-4">
         <Card>
             <CardHeader>
+                <div className="flex justify-between items-center">
+                    <div className="space-y-1">
+                        <CardTitle>Registered Users ({users.length})</CardTitle>
+                        <CardDescription>
+                            All students and staff registered for emergency alerts
+                        </CardDescription>
+                    </div>
+                    <Button onClick={() => handleOpenForm()}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add User
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>User</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead><span className="sr-only">Actions</span></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading && renderSkeleton()}
+                        {!isLoading && users.map(user => (
+                            <TableRow key={user.id}>
+                                <TableCell className="py-4">
+                                    <div className="flex items-center gap-4">
+                                        <Avatar>
+                                            <AvatarImage src={user.avatarUrl} alt={user.name} />
+                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-medium">{user.name}</p>
+                                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell className='capitalize'>
+                                    {user.role}
+                                </TableCell>
+                                <TableCell>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                <span className="sr-only">Open menu</span>
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem onClick={() => handleOpenForm(user)}>Edit</DropdownMenuItem>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action cannot be undone. This will permanently delete the user account.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => deleteUser(user.id)}>Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+                {!isLoading && users.length === 0 && (
+                    <div className="text-center text-muted-foreground py-16">
+                        <p>No registered users found.</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
                 <CardTitle>Upload Users</CardTitle>
                 <CardDescription>
                     Upload a CSV file with student and staff email addresses. Format: name, email, role (Student/Staff)
@@ -179,92 +272,7 @@ export default function UserManagementPage() {
                 </div>
             </CardContent>
         </Card>
-
-        <Card>
-        <CardHeader>
-            <div className="flex justify-between items-center">
-                <div className="space-y-1 mb-4">
-                    <CardTitle>Registered Users ({users.length})</CardTitle>
-                    <CardDescription>
-                        All students and staff registered for emergency alerts
-                    </CardDescription>
-                </div>
-                <Button onClick={() => handleOpenForm()}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add User
-                </Button>
-            </div>
-        </CardHeader>
-        <CardContent>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead><span className="sr-only">Actions</span></TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {isLoading && renderSkeleton()}
-                    {!isLoading && users.map(user => (
-                        <TableRow key={user.id}>
-                            <TableCell className="py-4">
-                                <div className="flex items-center gap-4">
-                                    <Avatar>
-                                        <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="font-medium">{user.name}</p>
-                                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                                    </div>
-                                </div>
-                            </TableCell>
-                            <TableCell className='capitalize'>
-                                {user.role}
-                            </TableCell>
-                            <TableCell>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <span className="sr-only">Open menu</span>
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onClick={() => handleOpenForm(user)}>Edit</DropdownMenuItem>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This action cannot be undone. This will permanently delete the user account.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => deleteUser(user.id)}>Delete</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-            {!isLoading && users.length === 0 && (
-                <div className="text-center text-muted-foreground py-16">
-                    <p>No registered users found.</p>
-                </div>
-            )}
-        </CardContent>
-        </Card>
+        
         <UserForm 
             isOpen={isFormOpen}
             onClose={handleCloseForm}
@@ -274,4 +282,3 @@ export default function UserManagementPage() {
     </div>
   );
 }
-
