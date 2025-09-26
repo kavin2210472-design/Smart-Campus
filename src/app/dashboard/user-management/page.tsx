@@ -173,7 +173,7 @@ export default function UserManagementPage() {
                     {isLoading && renderSkeleton()}
                     {!isLoading && users.map(user => (
                         <TableRow key={user.id}>
-                            <TableCell>
+                            <TableCell className="py-4">
                                 <div className="flex items-center gap-4">
                                     <Avatar>
                                         <AvatarImage src={user.avatarUrl} alt={user.name} />
