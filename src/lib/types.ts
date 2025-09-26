@@ -45,8 +45,12 @@ export type PredictedAlert = {
 };
 
 export type CorrectiveAction = {
-  zoneName:string;
-  actions: string[];
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high';
+  eta: string;
+  impact: string;
+  icon: 'wind' | 'thermometer' | 'air-vent' | 'lightbulb' | 'fan';
 };
 
 export type User = {

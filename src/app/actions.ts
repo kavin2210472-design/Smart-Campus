@@ -4,7 +4,7 @@
 import { predictAqiAlerts } from "@/ai/flows/predict-aqi-alerts";
 import { suggestCorrectiveActions } from "@/ai/flows/suggest-corrective-actions";
 import { sendEmergencyAlert } from "@/ai/flows/send-emergency-alert";
-import type { SensorValues, HistoricalDataPoint, User, Alert } from "@/lib/types";
+import type { SensorValues, HistoricalDataPoint, User, Alert, CorrectiveAction } from "@/lib/types";
 
 export async function getAqiPrediction(zoneName: string, historicalData: HistoricalDataPoint[]) {
   try {
@@ -29,18 +29,13 @@ export async function getAqiPrediction(zoneName: string, historicalData: Histori
   }
 }
 
-export async function getCorrectiveActions(zoneName: string, predictedData: SensorValues) {
+export async function getCorrectiveActions(zoneName: string, sensorData: SensorValues): Promise<CorrectiveAction[] | null> {
   try {
-    const actions = await suggestCorrectiveActions({
-      zone: zoneName,
-      predictedPm25: predictedData.pm25,
-      predictedCo2: predictedData.co2,
-      predictedVoc: predictedData.voc,
-      predictedTemperature: predictedData.temperature,
-      predictedHumidity: predictedData.humidity,
-      predictedNoiseLevel: predictedData.noise,
+    const result = await suggestCorrectiveActions({
+      zoneName,
+      sensorData
     });
-    return actions;
+    return result.actions;
   } catch (error) {
     console.error(`Error getting corrective actions for ${zoneName}:`, error);
     return null;

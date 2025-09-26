@@ -1,6 +1,4 @@
-// src/ai/flows/suggest-corrective-actions.ts
 'use server';
-
 /**
  * @fileOverview This file defines a Genkit flow for suggesting corrective actions based on predicted AQI levels.
  *
@@ -13,20 +11,31 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SuggestCorrectiveActionsInputSchema = z.object({
-  zone: z.string().describe('The campus zone to analyze.'),
-  predictedPm25: z.number().describe('The predicted PM2.5 level in μg/m³.'),
-  predictedCo2: z.number().describe('The predicted CO2 level in ppm.'),
-  predictedVoc: z.number().describe('The predicted VOC level in ppb.'),
-  predictedTemperature: z.number().describe('The predicted temperature in Celsius.'),
-  predictedHumidity: z.number().describe('The predicted humidity as a percentage.'),
-  predictedNoiseLevel: z.number().describe('The predicted noise level in decibels.'),
+  zoneName: z.string().describe('The name of the campus zone to analyze.'),
+  sensorData: z.object({
+    pm25: z.number().describe('The current PM2.5 level in µg/m³.'),
+    co2: z.number().describe('The current CO2 level in ppm.'),
+    voc: z.number().describe('The current VOC level in ppb.'),
+    temperature: z.number().describe('The current temperature in Celsius.'),
+    humidity: z.number().describe('The current humidity as a percentage.'),
+    noise: z.number().describe('The current noise level in decibels.'),
+  }).describe('The current sensor readings for the zone.'),
 });
 export type SuggestCorrectiveActionsInput = z.infer<typeof SuggestCorrectiveActionsInputSchema>;
 
+
+const ActionSchema = z.object({
+    title: z.string().describe('The title of the corrective action.'),
+    description: z.string().describe('A detailed description of the action to be taken.'),
+    priority: z.enum(['low', 'medium', 'high']).describe('The priority of the action.'),
+    eta: z.string().describe('The estimated time to complete the action (e.g., "15 minutes").'),
+    impact: z.string().describe('The expected impact of the action (e.g., "30% reduction").'),
+    icon: z.enum(['wind', 'thermometer', 'air-vent', 'lightbulb', 'fan']).describe('An appropriate icon name for the action.')
+});
+
+
 const SuggestCorrectiveActionsOutputSchema = z.object({
-  actions: z.array(
-    z.string().describe('A suggested corrective action to mitigate environmental hazards.')
-  ).describe('A list of suggested corrective actions.')
+  actions: z.array(ActionSchema).describe('A list of suggested corrective actions.')
 });
 export type SuggestCorrectiveActionsOutput = z.infer<typeof SuggestCorrectiveActionsOutputSchema>;
 
@@ -38,18 +47,21 @@ const prompt = ai.definePrompt({
   name: 'suggestCorrectiveActionsPrompt',
   input: {schema: SuggestCorrectiveActionsInputSchema},
   output: {schema: SuggestCorrectiveActionsOutputSchema},
-  prompt: `You are an expert in environmental safety and provide corrective actions to maintain a healthy campus environment.
+  prompt: `You are an expert in environmental safety and building management for a smart campus.
 
-  Based on the following predicted environmental conditions for zone {{{zone}}}, suggest corrective actions to mitigate potential hazards. Focus on actions related to air quality (PM2.5, CO2, VOCs), temperature, humidity and noise levels. The suggested actions should maintain the safety of students and faculty.
+Based on the following real-time environmental data for zone "{{zoneName}}", suggest a prioritized list of 3-4 specific, actionable corrective actions to mitigate potential hazards and improve conditions.
 
-  Predicted PM2.5 Level: {{{predictedPm25}}} μg/m³
-  Predicted CO2 Level: {{{predictedCo2}}} ppm
-  Predicted VOC Level: {{{predictedVoc}}} ppb
-  Predicted Temperature: {{{predictedTemperature}}} °C
-  Predicted Humidity: {{{predictedHumidity}}} %
-  Predicted Noise Level: {{{predictedNoiseLevel}}} dB
+For each action, provide a title, a detailed description, a priority ('low', 'medium', 'high'), an estimated time of arrival (ETA), the expected impact, and an appropriate icon name ('wind', 'thermometer', 'air-vent', 'lightbulb', 'fan').
 
-  Provide a numbered list of corrective actions, be direct and concise.
+Current Sensor Data:
+- PM2.5: {{sensorData.pm25}} µg/m³
+- CO2: {{sensorData.co2}} ppm
+- VOC: {{sensorData.voc}} ppb
+- Temperature: {{sensorData.temperature}} °C
+- Humidity: {{sensorData.humidity}} %
+- Noise: {{sensorData.noise}} dB
+
+Generate actions that are concrete and can be "executed". For example, instead of "Improve ventilation", suggest "Activate additional HVAC units to improve air circulation and reduce PM2.5 concentration. Recommended flow rate: 15-20 ACH."
 `
 });
 
