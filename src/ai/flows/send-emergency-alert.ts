@@ -60,6 +60,13 @@ const sendEmergencyAlertFlow = ai.defineFlow(
     outputSchema: SendEmergencyAlertOutputSchema,
   },
   async (input) => {
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailAppPass = process.env.GMAIL_APP_PASS;
+
+    if (!gmailUser || !gmailAppPass) {
+        throw new Error("Gmail credentials are not configured in the environment variables.");
+    }
+    
     // 1. Generate the email content using the AI prompt
     const { output } = await prompt(input);
 
@@ -73,14 +80,14 @@ const sendEmergencyAlertFlow = ai.defineFlow(
         port: 465,
         secure: true, // use SSL
         auth: {
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_APP_PASS,
+            user: gmailUser,
+            pass: gmailAppPass,
         },
     });
 
     // 3. Define the email options
     const mailOptions = {
-        from: process.env.GMAIL_USER,
+        from: gmailUser,
         to: input.userEmails.join(', '), // Send to all users
         subject: output.emailSubject,
         html: output.emailBody,

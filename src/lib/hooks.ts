@@ -135,7 +135,7 @@ let inMemoryUsers: User[] = [...MOCK_USERS];
 const listeners: Set<(users: User[]) => void> = new Set();
 
 const broadcastUsers = () => {
-    listeners.forEach(listener => listener(inMemoryUsers));
+    listeners.forEach(listener => listener([...inMemoryUsers]));
 };
 
 export const addUser = (user: Omit<User, 'id' | 'avatarUrl'>) => {
@@ -204,5 +204,3 @@ export function useUsers() {
 
     return { users, isLoading, addUser, addUsers, updateUser, deleteUser };
 }
-
-    
