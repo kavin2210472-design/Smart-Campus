@@ -15,8 +15,8 @@ export default function AlertsPanel({
   isLoading?: boolean;
 }) {
 
-  const renderSkeleton = () => (
-    <div className="flex items-start gap-4 p-4">
+  const renderSkeleton = (key: number) => (
+    <div key={key} className="flex items-start gap-4 p-4">
       <Skeleton className="h-6 w-6 rounded-full mt-1" />
       <div className="grid gap-1 flex-1">
         <Skeleton className="h-4 w-3/4" />
@@ -34,7 +34,7 @@ export default function AlertsPanel({
       <CardContent>
         <ScrollArea className="h-[300px] md:h-[400px]">
           <div className="grid gap-4">
-            {isLoading && Array.from({ length: 3 }).map((_, i) => renderSkeleton())}
+            {isLoading && Array.from({ length: 3 }).map((_, i) => renderSkeleton(i))}
             {!isLoading && predictedAlerts.map((alert, index) => (
               <div key={`pred-${index}`} className="flex items-start gap-4 p-4 rounded-lg bg-accent/30 border border-accent">
                 <div className="bg-accent rounded-full p-1.5 text-accent-foreground">
