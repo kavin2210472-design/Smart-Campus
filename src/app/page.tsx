@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CampusGuardLogo } from '@/components/icons';
+import { Shield } from 'lucide-react';
 
 export default function LoginPage() {
   return (
@@ -11,53 +11,38 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
-            <CampusGuardLogo className="h-8 w-8" />
+            <Shield className="h-8 w-8 text-blue-600" />
           </div>
-          <CardTitle className="text-2xl">Welcome to CampusGuard</CardTitle>
-          <CardDescription>Enter your credentials to access the admin dashboard.</CardDescription>
+          <CardTitle className="text-2xl">Admin Login</CardTitle>
+          <CardDescription>Access the Campus Emergency Management System</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
+              id="username"
+              type="text"
+              placeholder="Enter username"
               required
-              defaultValue="admin@example.com"
             />
           </div>
           <div className="grid gap-2">
-            <div className="flex items-center">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                href="#"
-                className="ml-auto inline-block text-sm underline"
-              >
-                Forgot your password?
-              </Link>
-            </div>
+            <Label htmlFor="password">Password</Label>
             <Input 
               id="password" 
               type="password" 
+              placeholder="Enter password"
               required 
-              defaultValue="password"
             />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" asChild>
-            <Link href="/dashboard">Login</Link>
+            <Link href="/dashboard">Sign In</Link>
           </Button>
-          <Button variant="outline" className="w-full">
-            Login with Google
-          </Button>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="#" className="underline">
-              Sign up
-            </Link>
-          </div>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Default credentials: admin / admin123
+          </p>
         </CardFooter>
       </Card>
     </div>
