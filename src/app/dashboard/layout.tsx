@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/analytics', icon: LineChart, label: 'Analytics' },
-    { href: '/dashboard/alerts', icon: AlertTriangle, label: 'Alerts Log', badge: '3' },
+    { href: '/dashboard/alerts', icon: AlertTriangle, label: 'Alerts Log' },
     { href: '#', icon: Users, label: 'User Management' },
     { href: '#', icon: Settings, label: 'Settings' },
   ];
