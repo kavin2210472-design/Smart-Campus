@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import type { Zone, SensorValues, ZoneStatus, HistoricalDataPoint } from './types';
+import { ZoneStatus } from './types';
+import type { Zone, SensorValues, HistoricalDataPoint } from './types';
 
 // --- Configuration ---
 const ZONES_CONFIG: Omit<Zone, 'status' | 'currentData' | 'historicalData'>[] = [
