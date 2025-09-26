@@ -6,6 +6,11 @@ import type { SensorValues, HistoricalDataPoint } from "@/lib/types";
 
 export async function getAqiPrediction(zoneName: string, historicalData: HistoricalDataPoint[]) {
   try {
+    if (!historicalData || historicalData.length === 0) {
+      // Return a default or empty value if there's no data to process
+      return { predictedAqi: 0, alertMessage: "Not enough data for prediction." };
+    }
+
     const historicalDataString = historicalData
       .slice(-5) // Use last 5 data points
       .map(d => `Timestamp: ${new Date(d.timestamp).toISOString()}, PM2.5: ${d.pm25.toFixed(1)}, CO2: ${d.co2.toFixed(0)}, VOC: ${d.voc.toFixed(0)}`)
