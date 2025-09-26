@@ -48,7 +48,6 @@ export async function getCorrectiveActions(zoneName: string, predictedData: Sens
 }
 
 export async function sendManualAlert(zoneName: string, message: string, userEmails: string[]): Promise<Alert> {
-    // This function now works with the SIMULATED email flow.
     try {
         const result = await sendEmergencyAlert({
             zoneName,
@@ -56,7 +55,10 @@ export async function sendManualAlert(zoneName: string, message: string, userEma
             userEmails,
         });
 
-        // The 'result' is the confirmation from the simulated flow.
+        if (!result) {
+            throw new Error("AI flow did not return a result.");
+        }
+
         console.log("Alert simulation successful, confirmation: ", result.confirmationMessage);
 
         const newAlert: Alert = {
@@ -71,7 +73,6 @@ export async function sendManualAlert(zoneName: string, message: string, userEma
         return newAlert;
 
     } catch (error) {
-        // This will now only catch errors from the AI generation itself.
         console.error("Failed to process the emergency alert simulation:", error);
         throw new Error("Failed to generate alert content. Please try again.");
     }
