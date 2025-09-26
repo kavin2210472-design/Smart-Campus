@@ -6,9 +6,9 @@ import StatsCard from "@/components/dashboard/stats-card";
 import UserManagementPage from "./user-management/page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AlertsLogPage from "./alerts/page";
-import { useUsers, addUser, addUsers, updateUser, deleteUser } from "@/lib/hooks";
+import { useUsers } from "@/lib/hooks";
 import { useCampusData } from "@/lib/hooks";
-import { ZoneStatus, Alert as ManualAlert, User } from "@/lib/types";
+import { ZoneStatus, Alert as ManualAlert } from "@/lib/types";
 import EmergencyAlertForm from "@/components/dashboard/emergency-alert-form";
 import { useState } from "react";
 
@@ -52,13 +52,7 @@ export default function Dashboard() {
             <TabsTrigger value="alert-history">Alert History</TabsTrigger>
         </TabsList>
         <TabsContent value="user-management">
-            <UserManagementPage 
-                users={users} 
-                addUser={addUser} 
-                addUsers={addUsers}
-                updateUser={updateUser} 
-                deleteUser={deleteUser} 
-            />
+            <UserManagementPage />
         </TabsContent>
         <TabsContent value="emergency-alerts">
             <EmergencyAlertForm onAlertSent={handleAlertSent} zones={zones} />

@@ -15,18 +15,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import UserForm from '@/components/dashboard/user-form';
-import { useUsers } from '@/lib/hooks';
+import { useUsers, addUser, addUsers, updateUser, deleteUser } from '@/lib/hooks';
 
-type UserManagementPageProps = {
-    users: User[];
-    addUser: (user: Omit<User, 'id' | 'avatarUrl'>) => void;
-    addUsers: (users: Omit<User, 'id' | 'avatarUrl'>[]) => void;
-    updateUser: (userId: string, updatedInfo: Partial<Omit<User, 'id'>>) => void;
-    deleteUser: (userId: string) => void;
-};
-
-export default function UserManagementPage({ users, addUser, addUsers, updateUser, deleteUser }: UserManagementPageProps) {
-    const { isLoading } = useUsers();
+export default function UserManagementPage() {
+    const { users, isLoading } = useUsers();
     const { toast } = useToast();
     const [csvError, setCsvError] = useState<string | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
