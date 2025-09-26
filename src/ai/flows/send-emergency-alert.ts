@@ -25,7 +25,7 @@ const SendEmergencyAlertOutputSchema = z.object({
   confirmationMessage: z.string().describe('A confirmation that the alert was processed and sent successfully.'),
   emailSubject: z.string().describe('The subject line of the email.'),
   emailBody: z.string().describe('The body content of the email.'),
-});-
+});
 export type SendEmergencyAlertOutput = z.infer<typeof SendEmergencyAlertOutputSchema>;
 
 export async function sendEmergencyAlert(input: SendEmergencyAlertInput): Promise<SendEmergencyAlertOutput> {
