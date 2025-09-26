@@ -151,17 +151,23 @@ export const addUser = (user: Omit<User, 'id' | 'avatarUrl'>) => {
 };
 
 export const addUsers = (users: Omit<User, 'id' | 'avatarUrl'>[]) => {
-    const newUsers = users.map(user => {
-        const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
-        const id = `user-${Date.now()}-${userCounter++}-${Math.random()}`;
-        return {
-            ...user,
-            id,
-            avatarUrl: `https://picsum.photos/seed/${seed}/40/40`,
-        };
-    });
-    inMemoryUsers = [...inMemoryUsers, ...newUsers];
-    broadcastUsers();
+    const existingEmails = new Set(inMemoryUsers.map(u => u.email));
+    const newUsers = users
+        .filter(user => !existingEmails.has(user.email))
+        .map(user => {
+            const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
+            const id = `user-${Date.now()}-${userCounter++}-${Math.random()}`;
+            return {
+                ...user,
+                id,
+                avatarUrl: `https://picsum.photos/seed/${seed}/40/40`,
+            };
+        });
+
+    if (newUsers.length > 0) {
+        inMemoryUsers = [...newUsers, ...inMemoryUsers];
+        broadcastUsers();
+    }
 };
 
 export const updateUser = (userId: string, updatedInfo: Partial<Omit<User, 'id'>>) => {
