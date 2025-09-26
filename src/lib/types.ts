@@ -25,6 +25,8 @@ export type Zone = {
   currentData: SensorValues;
   historicalData: HistoricalDataPoint[];
   mapPosition: { top: string; left: string; width: string; height: string };
+  location: string;
+  lastUpdated: string;
 };
 
 export type Alert = {

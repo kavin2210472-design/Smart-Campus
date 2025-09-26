@@ -1,50 +1,63 @@
+
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield } from 'lucide-react';
+import { EcoWatchLogo } from '@/components/icons';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function LoginPage() {
+  const loginBg = PlaceHolderImages.find(p => p.id === 'login-bg-2');
+
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mb-4 flex justify-center">
-            <Shield className="h-8 w-8 text-blue-600" />
+    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+      <div className="flex items-center justify-center py-12">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+            <div className="flex justify-center items-center gap-2 mb-4">
+              <EcoWatchLogo className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">EcoWatch Campus</h1>
+            </div>
+            <p className="text-balance text-muted-foreground">
+              Enter your credentials to access the admin dashboard
+            </p>
           </div>
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
-          <CardDescription>Access the Campus Emergency Management System</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="Enter username"
-              required
-            />
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="admin"
+                defaultValue="admin"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+              </div>
+              <Input id="password" type="password" placeholder='admin123' defaultValue="admin123" required />
+            </div>
+            <Button type="submit" className="w-full" asChild>
+              <Link href="/dashboard">Login</Link>
+            </Button>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              placeholder="Enter password"
-              required 
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" asChild>
-            <Link href="/dashboard">Sign In</Link>
-          </Button>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Default credentials: admin / admin123
-          </p>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
+      <div className="hidden bg-muted lg:block">
+        {loginBg && (
+          <Image
+            src={loginBg.imageUrl}
+            alt={loginBg.description}
+            width="1920"
+            height="1080"
+            className="h-full w-full object-cover"
+            data-ai-hint={loginBg.imageHint}
+          />
+        )}
+      </div>
     </div>
   );
 }
