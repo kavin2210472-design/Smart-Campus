@@ -17,7 +17,7 @@ type DashboardProps = {
     addManualAlert?: (alert: Omit<Alert, 'id' | 'type'>) => void;
 };
 
-export default function Dashboard({ addManualAlert = () => {} }: DashboardProps) {
+export default function Dashboard({ addManualAlert }: DashboardProps) {
   const { zones, isLoading } = useCampusData();
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [isSheetOpen, setSheetOpen] = useState(false);
@@ -118,7 +118,7 @@ export default function Dashboard({ addManualAlert = () => {} }: DashboardProps)
         correctiveActions={correctiveActions}
         isActionsLoading={isActionsLoading}
       />
-      <ManualAlertDialog open={isManualAlertOpen} onOpenChange={setManualAlertOpen} onSendAlert={addManualAlert} />
+      {addManualAlert && <ManualAlertDialog open={isManualAlertOpen} onOpenChange={setManualAlertOpen} onSendAlert={addManualAlert} />}
     </>
   );
 }

@@ -9,9 +9,11 @@ import { CampusGuardLogo } from '@/components/icons';
 import Header from '@/components/dashboard/header';
 import NavLink from '@/components/dashboard/nav-link';
 import { Alert } from '@/lib/types';
+import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [manualAlerts, setManualAlerts] = useState<Alert[]>([]);
+  const pathname = usePathname();
 
   const addManualAlert = (alert: Omit<Alert, 'id' | 'type'>) => {
     const newAlert: Alert = {
@@ -71,15 +73,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background overflow-auto">
            {React.Children.map(children, child => {
               if (React.isValidElement(child)) {
-                // @ts-ignore
-                const newProps: { manualAlerts?: Alert[], addManualAlert?: (alert: Omit<Alert, 'id' | 'type'>) => void } = {};
-                if (child.type.name === 'Dashboard') {
-                  newProps.addManualAlert = addManualAlert;
-                }
-                if (child.type.name === 'AlertsLogPage') {
-                   newProps.manualAlerts = manualAlerts;
-                }
-                return React.cloneElement(child, newProps);
+                // Pass props to all children; they will only use what they need.
+                // Adding a key ensures React handles re-renders correctly.
+                return React.cloneElement(child, { 
+                    key: pathname, // use pathname as key to force re-render on navigation
+                    manualAlerts: manualAlerts,
+                    addManualAlert: addManualAlert
+                 } as any);
               }
               return child;
             })}

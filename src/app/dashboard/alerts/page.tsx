@@ -120,6 +120,10 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
 
     const displayManualAlerts: DisplayAlert[] = manualAlerts.map(alert => ({
         ...alert,
+        id: alert.id,
+        zoneName: alert.zoneName,
+        message: alert.message,
+        timestamp: alert.timestamp,
         type: 'manual',
         badgeLabel: 'Manual',
         badgeVariant: 'default'
