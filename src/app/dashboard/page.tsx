@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { useCampusData } from "@/lib/hooks";
-import type { Zone, Alert, PredictedAlert, CorrectiveAction, ZoneStatus } from "@/lib/types";
+import { ZoneStatus, type Zone, type Alert, type PredictedAlert, type CorrectiveAction } from "@/lib/types";
 import StatsCard from "@/components/dashboard/stats-card";
 import CampusMap from "@/components/dashboard/campus-map";
 import AlertsPanel from "@/components/dashboard/alerts-panel";
@@ -43,7 +43,7 @@ export default function Dashboard() {
   
   const activeAlerts = useMemo<Alert[]>(() => {
     return zones
-      .filter(zone => zone.status === 'Unsafe')
+      .filter(zone => zone.status === ZoneStatus.Unsafe)
       .map(zone => ({
         id: `alert-${zone.id}`,
         zoneId: zone.id,
