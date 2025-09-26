@@ -11,13 +11,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const sensorConfig: { key: keyof SensorValues; name: string; color: string }[] = [
-  { key: 'pm25', name: 'PM2.5', color: 'hsl(var(--chart-1))' },
-  { key: 'co2', name: 'CO₂', color: 'hsl(var(--chart-2))' },
-  { key: 'voc', name: 'VOC', color: 'hsl(var(--chart-3))' },
-  { key: 'temperature', name: 'Temperature', color: 'hsl(var(--chart-4))' },
-  { key: 'humidity', name: 'Humidity', color: 'hsl(var(--chart-5))' },
-  { key: 'noise', name: 'Noise', color: 'hsl(var(--primary))' },
+const sensorConfig: { key: keyof SensorValues; name: string; unit: string; }[] = [
+  { key: 'pm25', name: 'PM2.5', unit: 'µg/m³' },
+  { key: 'co2', name: 'CO₂', unit: 'ppm' },
+  { key: 'voc', name: 'VOC', unit: 'ppb' },
+  { key: 'temperature', name: 'Temperature', unit: '°C' },
+  { key: 'humidity', name: 'Humidity', unit: '%' },
+  { key: 'noise', name: 'Noise', unit: 'dB' },
+];
+
+const zoneColors = [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+    'hsl(var(--primary))',
 ];
 
 export default function AnalyticsPage() {
@@ -27,10 +36,10 @@ export default function AnalyticsPage() {
 
   // Default to selecting the first 3 zones if available
   useEffect(() => {
-    if (zones.length > 0) {
+    if (zones.length > 0 && selectedZoneIds.length === 0) {
       setSelectedZoneIds(zones.slice(0, 3).map(z => z.id));
     }
-  }, [zones]);
+  }, [zones, selectedZoneIds.length]);
 
 
   const handleZoneSelection = (zoneId: string, checked: boolean | 'indeterminate') => {
@@ -45,8 +54,8 @@ export default function AnalyticsPage() {
     const selectedZones = zones.filter(z => selectedZoneIds.includes(z.id));
     if (!selectedZones.length) return [];
     
-    // Assuming all zones have the same historical data timestamps
-    const timestamps = selectedZones[0].historicalData.map(d => d.timestamp);
+    // Assuming all zones have the same historical data timestamps for simplicity
+    const timestamps = selectedZones.length > 0 ? selectedZones[0].historicalData.map(d => d.timestamp) : [];
 
     return timestamps.map(ts => {
       const dataPoint: { timestamp: number; [key: string]: number } = { timestamp: ts };
@@ -60,6 +69,15 @@ export default function AnalyticsPage() {
     });
 
   }, [zones, selectedMetric, selectedZoneIds]);
+  
+  const zoneColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    zones.forEach((zone, index) => {
+        map.set(zone.id, zoneColors[index % zoneColors.length]);
+    });
+    return map;
+  }, [zones]);
+
 
   const metricConfig = sensorConfig.find(m => m.key === selectedMetric);
 
@@ -140,6 +158,7 @@ export default function AnalyticsPage() {
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
+                        unit={metricConfig?.unit}
                         label={{ value: metricConfig?.name, angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle' } }}
                     />
                     <Tooltip
@@ -148,15 +167,16 @@ export default function AnalyticsPage() {
                             borderColor: 'hsl(var(--border))',
                         }}
                         labelFormatter={(label) => new Date(label).toLocaleString()}
+                        formatter={(value: number, name: string) => [`${value.toFixed(2)} ${metricConfig?.unit}`, name]}
                     />
                     <Legend />
-                    {zones.filter(z => selectedZoneIds.includes(z.id)).map((zone, index) => (
+                    {zones.filter(z => selectedZoneIds.includes(z.id)).map((zone) => (
                         <Line
                         key={zone.id}
                         yAxisId="left"
                         type="monotone"
                         dataKey={zone.name}
-                        stroke={sensorConfig[index % sensorConfig.length].color}
+                        stroke={zoneColorMap.get(zone.id)}
                         strokeWidth={2}
                         dot={false}
                         />
