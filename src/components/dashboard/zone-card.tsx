@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Zone, ZoneStatus } from "@/lib/types";
-import { Thermometer, Wind, Waves, Co2, Volume2, Factory } from "lucide-react";
+import { Thermometer, Wind, Waves, CloudCog, Volume2, Factory } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { Skeleton } from "../ui/skeleton";
@@ -35,7 +35,7 @@ export default function ZoneCard({ zone, onClick, isLoading }: { zone: Zone; onC
   const sensorReadings = [
     { icon: Wind, value: `${zone.currentData.pm25.toFixed(1)} µg/m³`, label: 'PM2.5' },
     { icon: Factory, value: `${zone.currentData.co2.toFixed(0)} ppm`, label: 'CO₂' },
-    { icon: Co2, value: `${zone.currentData.voc.toFixed(0)} ppb`, label: 'VOC' },
+    { icon: CloudCog, value: `${zone.currentData.voc.toFixed(0)} ppb`, label: 'VOC' },
     { icon: Thermometer, value: `${zone.currentData.temperature.toFixed(1)}°C`, label: 'Temp' },
     { icon: Waves, value: `${zone.currentData.humidity.toFixed(1)}%`, label: 'Humidity' },
     { icon: Volume2, value: `${zone.currentData.noise.toFixed(0)} dB`, label: 'Noise' },

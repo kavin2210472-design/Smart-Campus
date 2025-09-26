@@ -3,7 +3,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Zone, CorrectiveAction, SensorValues } from "@/lib/types"
 import ZoneChart from "./zone-charts"
-import { AlertCircle, Thermometer, Wind, Waves, Co2, Volume2, Factory, Bot } from "lucide-react"
+import { AlertCircle, Thermometer, Wind, Waves, CloudCog, Volume2, Factory, Bot } from "lucide-react"
 import { ScrollArea } from "../ui/scroll-area"
 import { Badge } from "../ui/badge"
 import { Skeleton } from "../ui/skeleton"
@@ -11,7 +11,7 @@ import { Skeleton } from "../ui/skeleton"
 const sensorConfig = {
   pm25: { name: "PM2.5", icon: Wind, color: "hsl(var(--chart-1))" },
   co2: { name: "CO₂", icon: Factory, color: "hsl(var(--chart-2))" },
-  voc: { name: "VOC", icon: Co2, color: "hsl(var(--chart-3))" },
+  voc: { name: "VOC", icon: CloudCog, color: "hsl(var(--chart-3))" },
   temperature: { name: "Temperature", icon: Thermometer, color: "hsl(var(--chart-4))" },
   humidity: { name: "Humidity", icon: Waves, color: "hsl(var(--chart-5))" },
   noise: { name: "Noise", icon: Volume2, color: "hsl(var(--primary))" },
