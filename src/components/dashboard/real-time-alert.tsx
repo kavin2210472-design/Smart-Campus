@@ -12,6 +12,10 @@ type RealTimeAlertProps = {
 };
 
 export default function RealTimeAlert({ alert, onDismiss }: RealTimeAlertProps) {
+    if (!alert) {
+        return null;
+    }
+
     const zoneDisplay = alert.zoneName === 'all-zones' ? 'All Zones' : alert.zoneName;
     
     return (

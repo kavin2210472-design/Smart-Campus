@@ -27,31 +27,40 @@ type AlertsLogPageProps = {
 
 export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps) {
   const { zones, isLoading: isCampusDataLoading } = useCampusData();
-  const [predictedAlerts, setPredictedAlerts] = useState<PredictedAlert[]>([]);
+  const [predictedAlerts, setPredictedAlerts] = useState<(PredictedAlert & { zoneName: string })[]>([]);
+  const [loadingPredictions, setLoadingPredictions] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     if (!isCampusDataLoading && zones.length > 0) {
       const fetchPredictions = async () => {
+        setLoadingPredictions(true);
         try {
             const predictions = await Promise.all(
               zones.map(zone => getAqiPrediction(zone.name, zone.historicalData))
             );
-            const newPredictedAlerts = predictions
-                .filter(p => p && p.predictedAqi > 100)
-                .map(p => ({
-                    ...p,
-                    zoneName: p.zoneName, 
-                    timestamp: new Date().toISOString(),
-                    type: 'predicted'
-                })) as (PredictedAlert & { zoneName: string, timestamp: string, type: 'predicted' })[];
-            
-            setPredictedAlerts(newPredictedAlerts);
+            if (isMounted) {
+                const newPredictedAlerts = predictions
+                    .map((p, index) => ({...p, zoneName: zones[index].name})) // Ensure zoneName is present
+                    .filter(p => p && p.predictedAqi > 100) as (PredictedAlert & { zoneName: string })[];
+                
+                setPredictedAlerts(newPredictedAlerts);
+            }
         } catch(e) {
-            console.error(e);
+            console.error("Failed to fetch predictions:", e);
+        } finally {
+            if (isMounted) {
+                setLoadingPredictions(false);
+            }
         }
       };
       fetchPredictions();
+    } else if (!isCampusDataLoading) {
+        setLoadingPredictions(false);
     }
+    
+    return () => { isMounted = false };
+
   }, [isCampusDataLoading, zones]);
   
   const allAlerts = useMemo(() => {
@@ -70,10 +79,10 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
       }));
     
     const futureAlerts: DisplayAlert[] = predictedAlerts.map((p, index) => ({
-        id: `predicted-${p.zoneName}-${p.predictedAqi}-${p.timestamp}-${index}`,
+        id: `predicted-${p.zoneName}-${p.predictedAqi}-${index}`,
         zoneName: p.zoneName,
         message: p.alertMessage,
-        timestamp: new Date(p.timestamp).toLocaleString(),
+        timestamp: new Date().toLocaleString(),
         type: 'predicted',
         badgeLabel: 'Predicted',
         badgeVariant: 'outline'
@@ -108,11 +117,10 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
     });
 
     const displayManualAlerts: DisplayAlert[] = manualAlerts.map(alert => ({
-        ...alert,
         id: alert.id,
-        zoneName: alert.zoneName,
+        zoneName: alert.zoneName === 'all-zones' ? 'All Zones' : alert.zoneName,
         message: alert.message,
-        timestamp: alert.timestamp,
+        timestamp: new Date(alert.timestamp).toLocaleString(),
         type: 'manual',
         badgeLabel: 'Manual',
         badgeVariant: 'default'
@@ -129,7 +137,7 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
   }, [isCampusDataLoading, zones, predictedAlerts, manualAlerts]);
 
 
-  const isLoading = isCampusDataLoading;
+  const isLoading = isCampusDataLoading || loadingPredictions;
 
   const renderSkeleton = () => (
     Array.from({ length: 5 }).map((_, i) => (

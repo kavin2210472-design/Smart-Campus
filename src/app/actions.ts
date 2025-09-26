@@ -49,7 +49,6 @@ export async function getCorrectiveActions(zoneName: string, predictedData: Sens
 
 export async function sendManualAlert(zoneName: string, message: string, userEmails: string[]): Promise<Alert> {
     // This function now works with the SIMULATED email flow.
-    // It will not throw a "failed to send" error from Nodemailer.
     try {
         const result = await sendEmergencyAlert({
             zoneName,

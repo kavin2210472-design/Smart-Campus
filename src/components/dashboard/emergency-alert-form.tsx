@@ -75,7 +75,7 @@ export default function EmergencyAlertForm({ onAlertSent, zones }: EmergencyAler
       <CardHeader>
         <CardTitle>Send Emergency Alert</CardTitle>
         <CardDescription>
-          Broadcast a manual emergency alert to all registered users. This will send an email notification.
+          Broadcast a manual emergency alert to all registered users. This will show a real-time notification on the dashboard.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -137,7 +137,7 @@ export default function EmergencyAlertForm({ onAlertSent, zones }: EmergencyAler
 
                 <div className="flex justify-end">
                 <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending...' : 'Broadcast Alert'}
+                    {isSubmitting ? 'Broadcasting...' : 'Broadcast Alert'}
                 </Button>
                 </div>
             </form>

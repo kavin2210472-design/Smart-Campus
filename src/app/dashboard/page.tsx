@@ -54,7 +54,7 @@ export default function Dashboard() {
           title="Active Alerts" 
           value={activeAlertsCount.toString()} 
           icon={AlertCircle} 
-          description="Emergency notifications active" 
+          description="Based on real-time sensor data" 
         />
         <StatsCard title="System Status" value="Active" icon={RefreshCw} description="All systems operational" />
       </div>
