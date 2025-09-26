@@ -1,10 +1,10 @@
+
 "use server";
 
 import { predictAqiAlerts } from "@/ai/flows/predict-aqi-alerts";
 import { suggestCorrectiveActions } from "@/ai/flows/suggest-corrective-actions";
 import { sendEmergencyAlert } from "@/ai/flows/send-emergency-alert";
 import type { SensorValues, HistoricalDataPoint, User, Alert } from "@/lib/types";
-import { useUsers } from "@/lib/hooks";
 
 export async function getAqiPrediction(zoneName: string, historicalData: HistoricalDataPoint[]) {
   try {
@@ -48,10 +48,8 @@ export async function getCorrectiveActions(zoneName: string, predictedData: Sens
 }
 
 export async function sendManualAlert(zoneName: string, message: string, userEmails: string[]): Promise<Alert> {
-    console.log(`Sending alert for zone: ${zoneName}`);
-    console.log(`Message: ${message}`);
-    console.log(`Recipients: ${userEmails.join(', ')}`);
-
+    // This function now works with the SIMULATED email flow.
+    // It will not throw a "failed to send" error from Nodemailer.
     try {
         const result = await sendEmergencyAlert({
             zoneName,
@@ -59,13 +57,14 @@ export async function sendManualAlert(zoneName: string, message: string, userEma
             userEmails,
         });
 
-        console.log("Alert sent successfully, confirmation: ", result.confirmationMessage);
+        // The 'result' is the confirmation from the simulated flow.
+        console.log("Alert simulation successful, confirmation: ", result.confirmationMessage);
 
         const newAlert: Alert = {
             id: `manual-${Date.now()}`,
             zoneId: zoneName,
             zoneName: zoneName,
-            message: message,
+            message: message, // Use the original message for the UI alert
             timestamp: new Date().toISOString(),
             type: 'manual',
         };
@@ -73,7 +72,8 @@ export async function sendManualAlert(zoneName: string, message: string, userEma
         return newAlert;
 
     } catch (error) {
-        console.error("Failed to send emergency alert:", error);
-        throw new Error("Failed to send alert. Please try again.");
+        // This will now only catch errors from the AI generation itself.
+        console.error("Failed to process the emergency alert simulation:", error);
+        throw new Error("Failed to generate alert content. Please try again.");
     }
 }
