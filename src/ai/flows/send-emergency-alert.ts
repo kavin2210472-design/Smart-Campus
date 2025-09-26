@@ -1,3 +1,4 @@
+
 // src/ai/flows/send-emergency-alert.ts
 'use server';
 
@@ -66,12 +67,12 @@ const sendEmergencyAlertFlow = ai.defineFlow(
     }
 
     // 2. Simulate sending the email by logging it to the console (for hackathon demo)
-    console.log('--- SIMULATING EMAIL ---');
+    console.log('--- SIMULATING EMAIL (FOR HACKATHON DEMO) ---');
     console.log(`To: ${input.userEmails.join(', ')}`);
     console.log(`Subject: ${output.emailSubject}`);
     console.log('Body:');
     console.log(output.emailBody);
-    console.log('------------------------');
+    console.log('---------------------------------------------');
 
     // 3. Return the generated content for UI confirmation
     return output;

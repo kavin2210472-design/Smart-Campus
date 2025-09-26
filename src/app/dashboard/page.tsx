@@ -10,17 +10,25 @@ import { useUsers } from "@/lib/hooks";
 import { useCampusData } from "@/lib/hooks";
 import { ZoneStatus, Alert as ManualAlert } from "@/lib/types";
 import EmergencyAlertForm from "@/components/dashboard/emergency-alert-form";
+import RealTimeAlert from "@/components/dashboard/real-time-alert";
 import { useState } from "react";
 
 export default function Dashboard() {
   const { users } = useUsers();
   const { zones } = useCampusData();
   const [manualAlerts, setManualAlerts] = useState<ManualAlert[]>([]);
+  const [activeManualAlert, setActiveManualAlert] = useState<ManualAlert | null>(null);
+
 
   const activeAlertsCount = zones.filter(zone => zone.status === ZoneStatus.Unsafe).length;
   
   const handleAlertSent = (alert: ManualAlert) => {
-    setManualAlerts(prev => [...prev, alert]);
+    setManualAlerts(prev => [alert, ...prev]);
+    setActiveManualAlert(alert);
+  };
+
+  const handleDismissAlert = () => {
+    setActiveManualAlert(null);
   };
 
   const totalUsers = users.length;
@@ -29,6 +37,12 @@ export default function Dashboard() {
 
   return (
     <>
+      {activeManualAlert && (
+          <RealTimeAlert
+              alert={activeManualAlert}
+              onDismiss={handleDismissAlert}
+          />
+      )}
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
         <StatsCard 
           title="Total Users" 
