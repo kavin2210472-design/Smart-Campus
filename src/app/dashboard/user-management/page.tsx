@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Download, PlusCircle, AlertCircle as AlertCircleIcon, Upload } from 'lucide-react';
+import { Download, PlusCircle, AlertCircle as AlertCircleIcon, Upload, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,11 +13,37 @@ import { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import UserForm from '@/components/dashboard/user-form';
 
 export default function UserManagementPage() {
-    const { users, isLoading, addUser } = useUsers();
+    const { users, isLoading, addUser, updateUser, deleteUser } = useUsers();
     const { toast } = useToast();
     const [csvError, setCsvError] = useState<string | null>(null);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+
+    const handleOpenForm = (user: User | null = null) => {
+        setEditingUser(user);
+        setIsFormOpen(true);
+    };
+
+    const handleCloseForm = () => {
+        setIsFormOpen(false);
+        setEditingUser(null);
+    };
+
+    const handleFormSubmit = (userData: Omit<User, 'id' | 'avatarUrl'>) => {
+        if (editingUser) {
+            updateUser(editingUser.id, userData);
+            toast({ title: 'User Updated', description: 'The user\'s details have been successfully updated.' });
+        } else {
+            addUser(userData);
+            toast({ title: 'User Added', description: 'The new user has been successfully added.' });
+        }
+        handleCloseForm();
+    };
 
     const handleCsvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCsvError(null);
@@ -87,7 +113,7 @@ export default function UserManagementPage() {
     };
 
     const handleDownloadSample = () => {
-        const csvContent = "data:text/csv;charset=utf-8,name,email,role\nJohn Doe,john.doe@university.edu,student\nJane Smith,jane.smith@university.edu,staff";
+        const csvContent = "data:text/csv;charset=utf-8,name,email,role\nJohn Doe,john.doe@university.edu,Student\nJane Smith,jane.smith@university.edu,Staff";
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -100,7 +126,7 @@ export default function UserManagementPage() {
     const renderSkeleton = () => (
         Array.from({ length: 3 }).map((_, i) => (
           <TableRow key={`skeleton-user-${i}`}>
-            <TableCell>
+            <TableCell className='py-4'>
                 <div className="flex items-center gap-4">
                     <Skeleton className="h-10 w-10 rounded-full" />
                     <div className="space-y-1">
@@ -110,6 +136,7 @@ export default function UserManagementPage() {
                 </div>
             </TableCell>
             <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+            <TableCell><Skeleton className="h-8 w-8" /></TableCell>
           </TableRow>
         ))
       );
@@ -121,7 +148,7 @@ export default function UserManagementPage() {
             <CardHeader>
                 <CardTitle>Upload Users</CardTitle>
                 <CardDescription>
-                    Upload a CSV file with student and staff email addresses. Format: name, email, role (student/staff)
+                    Upload a CSV file with student and staff email addresses. Format: name, email, role (Student/Staff)
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -131,7 +158,7 @@ export default function UserManagementPage() {
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                 <Upload className="w-10 h-10 mb-3 text-muted-foreground" />
                                 <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                <p className="text-xs text-muted-foreground">CSV (MAX. 800x400px)</p>
+                                <p className="text-xs text-muted-foreground">CSV (up to 1MB)</p>
                             </div>
                             <Input id="csv-upload" type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
                         </label>
@@ -162,7 +189,7 @@ export default function UserManagementPage() {
                         All students and staff registered for emergency alerts
                     </CardDescription>
                 </div>
-                <Button>
+                <Button onClick={() => handleOpenForm()}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add User
                 </Button>
@@ -174,6 +201,7 @@ export default function UserManagementPage() {
                     <TableRow>
                         <TableHead>User</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -195,6 +223,37 @@ export default function UserManagementPage() {
                             <TableCell className='capitalize'>
                                 {user.role}
                             </TableCell>
+                            <TableCell>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <span className="sr-only">Open menu</span>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem onClick={() => handleOpenForm(user)}>Edit</DropdownMenuItem>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete the user account.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => deleteUser(user.id)}>Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -206,6 +265,13 @@ export default function UserManagementPage() {
             )}
         </CardContent>
         </Card>
+        <UserForm 
+            isOpen={isFormOpen}
+            onClose={handleCloseForm}
+            onSubmit={handleFormSubmit}
+            defaultValues={editingUser}
+        />
     </div>
   );
 }
+

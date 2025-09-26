@@ -33,7 +33,7 @@ export type Alert = {
   zoneName: string;
   message: string;
   timestamp: string;
-  type: 'current' | 'predicted' | 'manual';
+  type: 'current' | 'predicted' | 'manual' | 'historical';
 };
 
 export type PredictedAlert = {
@@ -43,7 +43,7 @@ export type PredictedAlert = {
 };
 
 export type CorrectiveAction = {
-  zoneName: string;
+  zoneName:string;
   actions: string[];
 };
 
@@ -52,5 +52,5 @@ export type User = {
     name: string;
     email: string;
     role: 'Admin' | 'Manager' | 'Operator' | 'Student' | 'Staff';
-    avatarUrl: string;
+    avatarUrl?: string;
 };

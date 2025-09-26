@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/predict-aqi-alerts.ts';
 import '@/ai/flows/suggest-corrective-actions.ts';
+import '@/ai/flows/send-emergency-alert.ts';

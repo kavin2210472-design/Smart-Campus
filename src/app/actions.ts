@@ -2,7 +2,9 @@
 
 import { predictAqiAlerts } from "@/ai/flows/predict-aqi-alerts";
 import { suggestCorrectiveActions } from "@/ai/flows/suggest-corrective-actions";
-import type { SensorValues, HistoricalDataPoint } from "@/lib/types";
+import { sendEmergencyAlert } from "@/ai/flows/send-emergency-alert";
+import type { SensorValues, HistoricalDataPoint, User, Alert } from "@/lib/types";
+import { useUsers } from "@/lib/hooks";
 
 export async function getAqiPrediction(zoneName: string, historicalData: HistoricalDataPoint[]) {
   try {
@@ -43,4 +45,35 @@ export async function getCorrectiveActions(zoneName: string, predictedData: Sens
     console.error(`Error getting corrective actions for ${zoneName}:`, error);
     return null;
   }
+}
+
+export async function sendManualAlert(zoneName: string, message: string, userEmails: string[]): Promise<Alert> {
+    console.log(`Sending alert for zone: ${zoneName}`);
+    console.log(`Message: ${message}`);
+    console.log(`Recipients: ${userEmails.join(', ')}`);
+
+    try {
+        const result = await sendEmergencyAlert({
+            zoneName,
+            customMessage: message,
+            userEmails,
+        });
+
+        console.log("Alert sent successfully, confirmation: ", result.confirmationMessage);
+
+        const newAlert: Alert = {
+            id: `manual-${Date.now()}`,
+            zoneId: zoneName,
+            zoneName: zoneName,
+            message: message,
+            timestamp: new Date().toISOString(),
+            type: 'manual',
+        };
+
+        return newAlert;
+
+    } catch (error) {
+        console.error("Failed to send emergency alert:", error);
+        throw new Error("Failed to send alert. Please try again.");
+    }
 }

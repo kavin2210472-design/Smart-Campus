@@ -6,14 +6,42 @@ import StatsCard from "@/components/dashboard/stats-card";
 import UserManagementPage from "./user-management/page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AlertsLogPage from "./alerts/page";
+import { useUsers } from "@/lib/hooks";
+import { useCampusData } from "@/lib/hooks";
+import { ZoneStatus, Alert as ManualAlert } from "@/lib/types";
+import EmergencyAlertForm from "@/components/dashboard/emergency-alert-form";
+import { useState } from "react";
 
 export default function Dashboard() {
+  const { users } = useUsers();
+  const { zones } = useCampusData();
+  const [manualAlerts, setManualAlerts] = useState<ManualAlert[]>([]);
+
+  const activeAlertsCount = zones.filter(zone => zone.status === ZoneStatus.Unsafe).length;
   
+  const handleAlertSent = (alert: ManualAlert) => {
+    setManualAlerts(prev => [...prev, alert]);
+  };
+
+  const totalUsers = users.length;
+  const studentCount = users.filter(u => u.role.toLowerCase() === 'student').length;
+  const staffCount = users.filter(u => u.role.toLowerCase() === 'staff').length;
+
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-        <StatsCard title="Total Users" value="0" icon={Users} description="0 students, 0 staff" />
-        <StatsCard title="Recent Alerts" value="0" icon={AlertCircle} description="Emergency notifications sent" />
+        <StatsCard 
+          title="Total Users" 
+          value={totalUsers.toString()} 
+          icon={Users} 
+          description={`${studentCount} students, ${staffCount} staff`} 
+        />
+        <StatsCard 
+          title="Active Alerts" 
+          value={activeAlertsCount.toString()} 
+          icon={AlertCircle} 
+          description="Emergency notifications active" 
+        />
         <StatsCard title="System Status" value="Active" icon={RefreshCw} description="All systems operational" />
       </div>
       <div className="grid gap-4 md:gap-8">
@@ -27,13 +55,10 @@ export default function Dashboard() {
             <UserManagementPage />
         </TabsContent>
         <TabsContent value="emergency-alerts">
-            {/* Content for Emergency Alerts will go here */}
-            <div className="text-center p-8 bg-card rounded-lg">
-                <p className="text-muted-foreground">Emergency alert functionality coming soon.</p>
-            </div>
+            <EmergencyAlertForm onAlertSent={handleAlertSent} zones={zones} />
         </TabsContent>
         <TabsContent value="alert-history">
-            <AlertsLogPage />
+            <AlertsLogPage manualAlerts={manualAlerts} />
         </TabsContent>
         </Tabs>
       </div>

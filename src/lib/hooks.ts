@@ -103,7 +103,7 @@ export function useCampusData() {
             voc: simulateDataChange(zone.currentData.voc, 20, zone.name === 'Science Lab' ? 0.3 : 0.05),
             temperature: simulateDataChange(zone.currentData.temperature, 0.5),
             humidity: simulateDataChange(zone.currentData.humidity, 2),
-            noise: simulateDataChange(zone.currentDatan.noise, 5, zone.name === 'Gymnasium' ? 0.25 : 0.1),
+            noise: simulateDataChange(zone.currentData.noise, 5, zone.name === 'Gymnasium' ? 0.25 : 0.1),
           };
 
           const newHistoricalData = [...zone.historicalData, { ...newValues, timestamp: now }].slice(-100); // Keep last 100 points
@@ -142,13 +142,13 @@ export function useUsers() {
         }, 500);
     }, []);
 
-    const addUser = (user: Omit<User, 'id'>) => {
+    const addUser = (user: Omit<User, 'id' | 'avatarUrl'>) => {
         const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
         const id = `user-${Date.now()}-${userCounter++}-${Math.random()}`;
         const newUser: User = { 
             ...user, 
             id,
-            avatarUrl: user.avatarUrl || `https://picsum.photos/seed/${seed}/40/40`,
+            avatarUrl: `https://picsum.photos/seed/${seed}/40/40`,
         };
         setUsers(prev => [newUser, ...prev]);
     };
