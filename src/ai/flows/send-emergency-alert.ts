@@ -1,6 +1,5 @@
 // src/ai/flows/send-emergency-alert.ts
 'use server';
-import 'dotenv/config';
 
 /**
  * @fileOverview Defines a Genkit flow for sending emergency alert emails.
@@ -12,7 +11,6 @@ import 'dotenv/config';
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import * as nodemailer from 'nodemailer';
 
 const SendEmergencyAlertInputSchema = z.object({
   zoneName: z.string().describe('The campus zone the alert is for. Can be "all-zones".'),
@@ -60,13 +58,6 @@ const sendEmergencyAlertFlow = ai.defineFlow(
     outputSchema: SendEmergencyAlertOutputSchema,
   },
   async (input) => {
-    const gmailUser = process.env.GMAIL_USER;
-    const gmailAppPass = process.env.GMAIL_APP_PASS;
-
-    if (!gmailUser || !gmailAppPass) {
-        throw new Error("Gmail credentials (GMAIL_USER or GMAIL_APP_PASS) are not configured in the environment variables.");
-    }
-    
     // 1. Generate the email content using the AI prompt
     const { output } = await prompt(input);
 
@@ -74,36 +65,15 @@ const sendEmergencyAlertFlow = ai.defineFlow(
       throw new Error('AI failed to generate an alert.');
     }
 
-    // 2. Set up the Nodemailer transporter using credentials from .env
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true, // use SSL
-        auth: {
-            user: gmailUser,
-            pass: gmailAppPass,
-        },
-    });
+    // 2. Simulate sending the email by logging it to the console (for hackathon demo)
+    console.log('--- SIMULATING EMAIL ---');
+    console.log(`To: ${input.userEmails.join(', ')}`);
+    console.log(`Subject: ${output.emailSubject}`);
+    console.log('Body:');
+    console.log(output.emailBody);
+    console.log('------------------------');
 
-    // 3. Define the email options
-    const mailOptions = {
-        from: gmailUser,
-        to: input.userEmails.join(', '), // Send to all users
-        subject: output.emailSubject,
-        html: output.emailBody,
-    };
-
-    // 4. Send the email
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Emergency alert email sent successfully to: ${input.userEmails.join(', ')}`);
-    } catch (error) {
-        console.error('Nodemailer error:', error);
-        // If email fails, we throw an error to be caught by the calling action
-        throw new Error('Failed to send email. Please check server logs and .env configuration.');
-    }
-    
-    // 5. Return the generated content for UI confirmation
+    // 3. Return the generated content for UI confirmation
     return output;
   }
 );
