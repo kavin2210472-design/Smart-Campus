@@ -51,43 +51,6 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
 
-  const NavLink = ({ href, icon: Icon, label }) => {
-    const isActive = pathname.startsWith(href);
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link href={href}>
-              <Button
-                variant={isActive ? 'secondary' : 'ghost'}
-                className="w-full justify-start gap-2"
-              >
-                <Icon className="h-4 w-4" />
-                <span>{label}</span>
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="right">{label}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
-  const MobileNavLink = ({ href, icon: Icon, label }) => {
-     const isActive = pathname.startsWith(href);
-     return (
-        <Link href={href}>
-        <Button
-            variant={isActive ? 'secondary' : 'ghost'}
-            className="w-full justify-start gap-2 text-base"
-        >
-            <Icon className="h-5 w-5" />
-            <span>{label}</span>
-        </Button>
-        </Link>
-     )
-  };
-
   const Header = () => (
      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
           <Sheet>
@@ -106,14 +69,27 @@ export default function DashboardLayout({
                   <EcoWatchLogo className="h-5 w-5 transition-all group-hover:scale-110" />
                   <span className="sr-only">EcoWatch Campus</span>
                 </Link>
-                {navItems.map(item => <MobileNavLink key={item.label} {...item} />)}
+                {navItems.map(item => {
+                    const isActive = pathname === item.href;
+                    return (
+                        <Link href={item.href} key={item.label}>
+                            <Button
+                                variant={isActive ? 'secondary' : 'ghost'}
+                                className="w-full justify-start gap-2 text-base"
+                            >
+                                <item.icon className="h-5 w-5" />
+                                <span>{item.label}</span>
+                            </Button>
+                        </Link>
+                    )
+                })}
               </nav>
             </SheetContent>
           </Sheet>
 
           <div className="hidden sm:flex items-center gap-4">
               {navItems.map(item => {
-                  const isActive = pathname.startsWith(item.href);
+                  const isActive = pathname === item.href;
                   return (
                       <Link key={item.label} href={item.href}>
                          <Button variant={isActive ? 'default' : 'ghost'} size="sm" className={cn("gap-2", isActive && "text-white")}>
@@ -165,7 +141,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-64 flex-col border-r bg-background sm:flex">
         <div className="flex h-16 items-center gap-2 border-b px-6">
-          <EcoWatchLogo className="h-7 w-7 text-primary" />
+          <EcoWatchLogo className="h-6 w-6 text-primary" />
           <div>
             <p className="text-lg font-semibold">EcoWatch</p>
             <p className="text-xs text-muted-foreground">Environmental Monitoring</p>
@@ -175,7 +151,7 @@ export default function DashboardLayout({
             <p className='text-xs font-semibold text-muted-foreground px-2 py-2'>MENU</p>
             <nav className="flex flex-col gap-1">
                 {navItems.map(item => {
-                    const isActive = pathname.startsWith(item.href);
+                    const isActive = pathname === item.href;
                     return (
                          <Link key={item.label} href={item.href}>
                             <Button variant={isActive ? 'secondary' : 'ghost'} className="w-full justify-start gap-2">
