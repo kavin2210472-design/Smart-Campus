@@ -126,7 +126,8 @@ export default function AlertHistoryTab({ manualAlerts = [] }: AlertHistoryTabPr
         badgeVariant: 'default'
     }));
     
-    const combined = [...activeAlerts, ...futureAlerts, ...historicalAlerts, ...displayManualAlerts];
+    const combined = [...displayManualAlerts, ...activeAlerts, ...futureAlerts, ...historicalAlerts];
+
 
     const uniqueAlerts = Array.from(new Map(combined.map(a => [a.id, a])).values());
     

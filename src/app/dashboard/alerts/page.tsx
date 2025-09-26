@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import {
   LayoutGrid,
   MapPin,
@@ -18,8 +19,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ActiveAlertsTab from '@/components/dashboard/alerts/active-alerts-tab';
 import AlertHistoryTab from '@/components/dashboard/alerts/alert-history-tab';
 import { Button } from '@/components/ui/button';
+import ManualAlertForm from '@/components/dashboard/alerts/manual-alert-form';
+import { Alert } from '@/lib/types';
+
 
 export default function AlertManagementPage() {
+  const [manualAlerts, setManualAlerts] = useState<Alert[]>([]);
+
+  const handleNewManualAlert = (newAlert: Alert) => {
+    setManualAlerts(prev => [newAlert, ...prev]);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -101,12 +111,10 @@ export default function AlertManagementPage() {
           <ActiveAlertsTab />
         </TabsContent>
         <TabsContent value="manual-alerts">
-            <div className="text-center py-16 text-muted-foreground">
-                Manual alert configuration coming soon.
-            </div>
+            <ManualAlertForm onAlertSent={handleNewManualAlert} />
         </TabsContent>
         <TabsContent value="alert-history">
-          <AlertHistoryTab />
+          <AlertHistoryTab manualAlerts={manualAlerts} />
         </TabsContent>
         <TabsContent value="system-health">
             <div className="text-center py-16 text-muted-foreground">
