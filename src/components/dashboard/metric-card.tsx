@@ -9,7 +9,8 @@ import type { LucideIcon } from 'lucide-react';
 import type { SensorValues, HistoricalDataPoint } from '@/lib/types';
 import { THRESHOLDS } from '@/lib/hooks';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 type MetricCardProps = {
   metric: keyof SensorValues;
@@ -20,15 +21,27 @@ type MetricCardProps = {
 };
 
 const getStatus = (metric: keyof SensorValues, value: number) => {
-  if (value > THRESHOLDS[metric].warning) return 'Warning';
   if (value > THRESHOLDS[metric].unsafe) return 'Unsafe';
+  if (value > THRESHOLDS[metric].warning) return 'Warning';
   return 'Safe';
 };
 
-const getStatusColor = (status: 'Safe' | 'Warning' | 'Unsafe') => {
-  if (status === 'Unsafe') return 'bg-red-500';
-  if (status === 'Warning') return 'bg-yellow-500';
-  return 'bg-green-500';
+const getStatusStyles = (status: 'Safe' | 'Warning' | 'Unsafe') => {
+  if (status === 'Unsafe') return {
+    progress: 'bg-red-500',
+    badge: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100',
+    value: 'text-red-600',
+  };
+  if (status === 'Warning') return {
+    progress: 'bg-yellow-500',
+    badge: 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100',
+    value: 'text-yellow-600',
+  };
+  return {
+    progress: 'bg-green-500',
+    badge: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100',
+    value: 'text-green-600',
+  };
 };
 
 const getTrend = (
@@ -41,13 +54,16 @@ const getTrend = (
   const previousValue = historical[historical.length - 2][metric];
   const diff = ((current - previousValue) / previousValue) * 100;
 
-  if (Math.abs(diff) < 1) {
-    return { diff: 0, icon: Minus, color: 'text-gray-500' };
+  // For temp, humidity, noise, higher can be bad
+  const isBadTrend = ['pm25', 'co2', 'voc', 'temperature', 'humidity', 'noise'].includes(metric);
+
+  if (Math.abs(diff) < 0.1) {
+    return { diff: 0, icon: Minus, color: 'text-muted-foreground' };
   }
   if (diff > 0) {
-    return { diff, icon: TrendingUp, color: 'text-red-500' };
+    return { diff, icon: TrendingUp, color: isBadTrend ? 'text-red-500' : 'text-green-500' };
   }
-  return { diff, icon: TrendingDown, color: 'text-green-500' };
+  return { diff, icon: TrendingDown, color: isBadTrend ? 'text-green-500' : 'text-red-500' };
 };
 
 const getUnit = (metric: keyof SensorValues) => {
@@ -72,6 +88,7 @@ export default function MetricCard({
 }: MetricCardProps) {
   const value = data[metric];
   const status = useMemo(() => getStatus(metric, value), [metric, value]);
+  const styles = useMemo(() => getStatusStyles(status), [status]);
   const progressValue = useMemo(() => (value / (THRESHOLDS[metric].limit * 1.5)) * 100, [metric, value]);
   const trend = useMemo(() => getTrend(value, historicalData, metric), [value, historicalData, metric]);
   const lastUpdatedTimestamp = historicalData[historicalData.length - 1]?.timestamp;
@@ -84,15 +101,12 @@ export default function MetricCard({
       <CardHeader className="p-4 pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <Icon className="h-4 w-4" />
+            <Icon className="h-5 w-5 text-primary" />
             <span>{name}</span>
           </div>
           <Badge
-            variant={status === 'Safe' ? 'secondary' : 'default'}
-            className={cn({
-              'bg-yellow-100 text-yellow-800 border-yellow-200': status === 'Warning',
-              'bg-red-100 text-red-800 border-red-200': status === 'Unsafe',
-            })}
+            variant={'outline'}
+            className={cn('font-semibold', styles.badge)}
           >
             {status}
           </Badge>
@@ -100,20 +114,22 @@ export default function MetricCard({
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="mb-2">
-          <span className="text-3xl font-bold">{value.toFixed(name === 'Temperature' ? 1 : 0)}</span>
-          <span className="text-sm text-muted-foreground">{unit}</span>
+          <span className={cn('text-3xl font-bold', status !== 'Safe' ? styles.value : 'text-foreground')}>
+            {value.toFixed(metric === 'temperature' ? 1 : 0)}
+          </span>
+          <span className="text-sm text-muted-foreground ml-1">{unit}</span>
         </div>
         <p className="text-xs text-muted-foreground mb-2">
           WHO Limit: {THRESHOLDS[metric].limit} {unit}
         </p>
-        <Progress value={progressValue} className="h-2 mb-2" indicatorclassname={getStatusColor(status)} />
+        <Progress value={progressValue} className="h-2 mb-2" indicatorclassname={styles.progress} />
         <div className="flex justify-between items-center text-xs text-muted-foreground">
           <div className={cn('flex items-center', trend.color)}>
             <TrendIcon className="h-3 w-3 mr-1" />
             <span>{trend.diff.toFixed(0)}% vs 1h ago</span>
           </div>
           {lastUpdatedTimestamp && (
-            <span>{formatDistanceToNow(new Date(lastUpdatedTimestamp), { addSuffix: true })}</span>
+            <span>{formatDistanceToNowStrict(new Date(lastUpdatedTimestamp))} ago</span>
           )}
         </div>
       </CardContent>

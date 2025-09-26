@@ -39,8 +39,8 @@ const metricConfig: {
     color: string;
   };
 } = {
-  pm25: { name: 'PM2.5 Levels', icon: Wind, color: '#ef4444' },
-  co2: { name: 'CO₂ Concentration', icon: Cloud, color: '#8b5cf6' },
+  pm25: { name: 'PM2.5', icon: Wind, color: '#ef4444' },
+  co2: { name: 'CO₂', icon: Cloud, color: '#8b5cf6' },
   temperature: { name: 'Temperature', icon: Thermometer, color: '#f97316' },
   humidity: { name: 'Humidity', icon: Droplets, color: '#3b82f6' },
   noise: { name: 'Noise Level', icon: Ear, color: '#14b8a6' },
@@ -115,7 +115,7 @@ export default function TrendAnalysis({ zone }: TrendAnalysisProps) {
             return (
               <Button
                 key={key}
-                variant={activeMetric === key ? 'primary' : 'ghost'}
+                variant={activeMetric === key ? 'secondary' : 'ghost'}
                 size="sm"
                 className={cn(
                     'flex-1 gap-2', 
