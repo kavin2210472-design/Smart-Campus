@@ -150,6 +150,20 @@ export const addUser = (user: Omit<User, 'id' | 'avatarUrl'>) => {
     broadcastUsers();
 };
 
+export const addUsers = (users: Omit<User, 'id' | 'avatarUrl'>[]) => {
+    const newUsers = users.map(user => {
+        const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
+        const id = `user-${Date.now()}-${userCounter++}-${Math.random()}`;
+        return {
+            ...user,
+            id,
+            avatarUrl: `https://picsum.photos/seed/${seed}/40/40`,
+        };
+    });
+    inMemoryUsers = [...inMemoryUsers, ...newUsers];
+    broadcastUsers();
+};
+
 export const updateUser = (userId: string, updatedInfo: Partial<Omit<User, 'id'>>) => {
     inMemoryUsers = inMemoryUsers.map(u => u.id === userId ? { ...u, ...updatedInfo } : u);
     broadcastUsers();
@@ -182,5 +196,7 @@ export function useUsers() {
         };
     }, []);
 
-    return { users, isLoading, addUser, updateUser, deleteUser };
+    return { users, isLoading, addUser, addUsers, updateUser, deleteUser };
 }
+
+    

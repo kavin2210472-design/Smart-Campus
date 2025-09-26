@@ -20,11 +20,12 @@ import { useUsers } from '@/lib/hooks';
 type UserManagementPageProps = {
     users: User[];
     addUser: (user: Omit<User, 'id' | 'avatarUrl'>) => void;
+    addUsers: (users: Omit<User, 'id' | 'avatarUrl'>[]) => void;
     updateUser: (userId: string, updatedInfo: Partial<Omit<User, 'id'>>) => void;
     deleteUser: (userId: string) => void;
 };
 
-export default function UserManagementPage({ users, addUser, updateUser, deleteUser }: UserManagementPageProps) {
+export default function UserManagementPage({ users, addUser, addUsers, updateUser, deleteUser }: UserManagementPageProps) {
     const { isLoading } = useUsers();
     const { toast } = useToast();
     const [csvError, setCsvError] = useState<string | null>(null);
@@ -82,7 +83,7 @@ export default function UserManagementPage({ users, addUser, updateUser, deleteU
                     return;
                 }
 
-                let usersAdded = 0;
+                const newUsers: Omit<User, 'id' | 'avatarUrl'>[] = [];
                 for (let i = 1; i < lines.length; i++) {
                     const data = lines[i].split(',');
                     if (data.length < header.length) continue;
@@ -96,16 +97,13 @@ export default function UserManagementPage({ users, addUser, updateUser, deleteU
                     }
 
                     if (name && email) {
-                        addUser({
-                            name,
-                            email,
-                            role,
-                        });
-                        usersAdded++;
+                        newUsers.push({ name, email, role });
                     }
                 }
-                if (usersAdded > 0) {
-                    toast({ title: 'CSV Processed', description: `${usersAdded} users were successfully added.` });
+                
+                if (newUsers.length > 0) {
+                    addUsers(newUsers);
+                    toast({ title: 'CSV Processed', description: `${newUsers.length} users were successfully added.` });
                 } else {
                     setCsvError('No valid user records found in the CSV to add.');
                 }
@@ -282,3 +280,5 @@ export default function UserManagementPage({ users, addUser, updateUser, deleteU
     </div>
   );
 }
+
+    
