@@ -134,6 +134,8 @@ const MOCK_USERS: User[] = [
     { id: 'user-5', name: 'David Chen', email: 'david.c@example.com', role: 'Operator', avatarUrl: 'https://picsum.photos/seed/user-5/40/40' },
 ];
 
+let userCounter = MOCK_USERS.length + 1;
+
 export function useUsers() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -146,17 +148,18 @@ export function useUsers() {
         }, 500);
     }, []);
 
-    const addUser = (user: Omit<User, 'id' | 'avatarUrl'> & { avatarUrl?: string }) => {
+    const addUser = (user: Omit<User, 'id'>) => {
         const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
+        const id = `user-${Date.now()}-${userCounter++}`;
         const newUser: User = { 
             ...user, 
-            id: `user-${Date.now()}`,
+            id,
             avatarUrl: user.avatarUrl || `https://picsum.photos/seed/${seed}/40/40`,
         };
         setUsers(prev => [newUser, ...prev]);
     };
 
-    const updateUser = (userId: string, updatedInfo: Partial<User>) => {
+    const updateUser = (userId: string, updatedInfo: Partial<Omit<User, 'id'>>) => {
         setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updatedInfo } : u));
     };
 
@@ -166,5 +169,3 @@ export function useUsers() {
 
     return { users, isLoading, addUser, updateUser, deleteUser };
 }
-
-    

@@ -54,5 +54,3 @@ export type User = {
     role: 'Admin' | 'Manager' | 'Operator';
     avatarUrl: string;
 };
-
-    

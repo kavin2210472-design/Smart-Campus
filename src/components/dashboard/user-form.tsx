@@ -21,7 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { User } from "@/lib/types";
 import {
     Dialog,
     DialogContent,
@@ -30,6 +29,7 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -52,6 +52,11 @@ export default function UserForm({ open, onOpenChange, onSubmit, defaultValues }
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues || { name: "", email: "", role: "Operator", avatarUrl: "" },
   });
+  
+  useEffect(() => {
+    form.reset(defaultValues || { name: "", email: "", role: "Operator", avatarUrl: "" });
+  }, [defaultValues, form, open]);
+
 
   const handleSubmit = (values: UserFormValues) => {
     // Generate a placeholder avatar if none is provided

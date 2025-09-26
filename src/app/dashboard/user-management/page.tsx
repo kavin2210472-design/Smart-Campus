@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { MoreHorizontal, PlusCircle, FileUp } from 'lucide-react';
+import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -91,16 +91,16 @@ export default function UserManagementPage() {
                 for (let i = 1; i < lines.length; i++) {
                     const data = lines[i].split(',');
                     if (data.length < header.length) continue;
-
-                    let role = data[roleIndex]?.trim() as User['role'];
-                    if (!['Admin', 'Manager', 'Operator'].includes(role)) {
-                        role = 'Operator'; // Default role if invalid one is provided
-                    }
                     
                     const name = data[nameIndex]?.trim();
                     const email = data[emailIndex]?.trim();
+                    let role = data[roleIndex]?.trim() as User['role'];
+                    
+                    if (!['Admin', 'Manager', 'Operator'].includes(role)) {
+                        role = 'Operator'; // Default role if invalid one is provided
+                    }
 
-                    if (name && email && role) {
+                    if (name && email) {
                         addUser({
                             name,
                             email,
@@ -109,7 +109,11 @@ export default function UserManagementPage() {
                         usersAdded++;
                     }
                 }
-                toast({ title: 'CSV Processed', description: `${usersAdded} users were successfully added.` });
+                if (usersAdded > 0) {
+                    toast({ title: 'CSV Processed', description: `${usersAdded} users were successfully added.` });
+                } else {
+                    toast({ variant: 'destructive', title: 'No users added', description: 'Could not find any valid user records in the CSV.' });
+                }
 
             } catch (error) {
                 toast({ variant: 'destructive', title: 'CSV Parsing Error', description: 'Failed to parse the CSV file. Please check its format.' });
@@ -274,7 +278,3 @@ export default function UserManagementPage() {
     </>
   );
 }
-
-    
-
-    
