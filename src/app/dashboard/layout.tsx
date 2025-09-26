@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import { Bell, Home, LineChart, Settings, Users, AlertTriangle, Shield } from 'lucide-react';
 import type { ReactNode } from 'react';
