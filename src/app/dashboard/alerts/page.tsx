@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useCampusData } from '@/lib/hooks';
-import { Alert, PredictedAlert, ZoneStatus } from '@/lib/types';
+import { PredictedAlert, ZoneStatus } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -51,9 +51,10 @@ export default function AlertsLogPage() {
             .filter(p => p && p.predictedAqi > 100)
             .map(p => ({
                 ...p,
+                zoneName: p.zoneName, // ensure zoneName is passed
                 timestamp: new Date().toISOString(),
                 type: 'predicted'
-            })) as (PredictedAlert & { timestamp: string, type: 'predicted' })[];
+            })) as (PredictedAlert & { zoneName: string, timestamp: string, type: 'predicted' })[];
         
         setPredictedAlerts(newPredictedAlerts);
         setPredictionLoading(false);
@@ -79,8 +80,8 @@ export default function AlertsLogPage() {
       }));
     
     // Predicted Alerts
-    const futureAlerts: DisplayAlert[] = predictedAlerts.map(p => ({
-        id: `predicted-${p.zoneName}-${p.predictedAqi}-${p.timestamp}`,
+    const futureAlerts: DisplayAlert[] = predictedAlerts.map((p, index) => ({
+        id: `predicted-${p.zoneName}-${p.predictedAqi}-${p.timestamp}-${index}`,
         zoneName: p.zoneName,
         message: p.alertMessage,
         timestamp: new Date(p.timestamp).toLocaleString(),
@@ -97,7 +98,7 @@ export default function AlertsLogPage() {
                 historicalAlerts.push({
                     id: `hist-pm25-${zone.id}-${dataPoint.timestamp}`,
                     zoneName: zone.name,
-                    message: `Unsafe PM2.5 level: ${dataPoint.pm25.toFixed(1)} µg/m³`,
+                    message: `High PM2.5 level: ${dataPoint.pm25.toFixed(1)} µg/m³`,
                     timestamp: new Date(dataPoint.timestamp).toLocaleString(),
                     type: 'historical',
                     badgeLabel: 'Historical',
@@ -108,7 +109,7 @@ export default function AlertsLogPage() {
                 historicalAlerts.push({
                     id: `hist-co2-${zone.id}-${dataPoint.timestamp}`,
                     zoneName: zone.name,
-                    message: `Unsafe CO2 level: ${dataPoint.co2.toFixed(0)} ppm`,
+                    message: `High CO2 level: ${dataPoint.co2.toFixed(0)} ppm`,
                     timestamp: new Date(dataPoint.timestamp).toLocaleString(),
                     type: 'historical',
                     badgeLabel: 'Historical',
@@ -141,7 +142,7 @@ export default function AlertsLogPage() {
 
   const renderSkeleton = () => (
     Array.from({ length: 5 }).map((_, i) => (
-      <TableRow key={i}>
+      <TableRow key={`skeleton-${i}`}>
         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
         <TableCell><Skeleton className="h-4 w-20" /></TableCell>
         <TableCell><Skeleton className="h-4 w-full" /></TableCell>
@@ -167,6 +168,20 @@ export default function AlertsLogPage() {
       <TableCell>{alert.timestamp}</TableCell>
     </TableRow>
   );
+  
+  const renderTableContent = (filteredAlerts: DisplayAlert[]) => {
+      if (isLoading) return renderSkeleton();
+      if (filteredAlerts.length === 0) {
+          return (
+              <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                      No alerts found for the selected period.
+                  </TableCell>
+              </TableRow>
+          );
+      }
+      return filteredAlerts.map(renderAlertRow);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -242,32 +257,26 @@ export default function AlertsLogPage() {
                       <TableHead>Timestamp</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {isLoading && renderSkeleton()}
-                    {!isLoading && (
-                        <>
-                           <TabsContent value="all">
-                                {allAlerts.map(renderAlertRow)}
-                           </TabsContent>
-                           <TabsContent value="active">
-                                {allAlerts.filter(a => a.type === 'current').map(renderAlertRow)}
-                           </TabsContent>
-                           <TabsContent value="predicted">
-                                {allAlerts.filter(a => a.type === 'predicted').map(renderAlertRow)}
-                           </TabsContent>
-                           <TabsContent value="historical">
-                                {allAlerts.filter(a => a.type === 'historical').map(renderAlertRow)}
-                           </TabsContent>
-                        </>
-                    )}
-                    {!isLoading && allAlerts.length === 0 && (
-                        <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center">
-                                No alerts found for the selected period.
-                            </TableCell>
-                        </TableRow>
-                    )}
-                  </TableBody>
+                   <TabsContent value="all">
+                      <TableBody>
+                        {renderTableContent(allAlerts)}
+                      </TableBody>
+                   </TabsContent>
+                   <TabsContent value="active">
+                      <TableBody>
+                        {renderTableContent(allAlerts.filter(a => a.type === 'current'))}
+                      </TableBody>
+                   </TabsContent>
+                   <TabsContent value="predicted">
+                      <TableBody>
+                        {renderTableContent(allAlerts.filter(a => a.type === 'predicted'))}
+                      </TableBody>
+                   </TabsContent>
+                   <TabsContent value="historical">
+                      <TableBody>
+                        {renderTableContent(allAlerts.filter(a => a.type === 'historical'))}
+                      </TableBody>
+                   </TabsContent>
                 </Table>
             </div>
           </Tabs>
