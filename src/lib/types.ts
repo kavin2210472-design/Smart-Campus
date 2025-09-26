@@ -51,6 +51,6 @@ export type User = {
     id: string;
     name: string;
     email: string;
-    role: 'Admin' | 'Manager' | 'Operator';
+    role: 'Admin' | 'Manager' | 'Operator' | 'Student' | 'Staff';
     avatarUrl: string;
 };

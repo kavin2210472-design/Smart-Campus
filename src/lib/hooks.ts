@@ -103,7 +103,7 @@ export function useCampusData() {
             voc: simulateDataChange(zone.currentData.voc, 20, zone.name === 'Science Lab' ? 0.3 : 0.05),
             temperature: simulateDataChange(zone.currentData.temperature, 0.5),
             humidity: simulateDataChange(zone.currentData.humidity, 2),
-            noise: simulateDataChange(zone.currentData.noise, 5, zone.name === 'Gymnasium' ? 0.25 : 0.1),
+            noise: simulateDataChange(zone.currentDatan.noise, 5, zone.name === 'Gymnasium' ? 0.25 : 0.1),
           };
 
           const newHistoricalData = [...zone.historicalData, { ...newValues, timestamp: now }].slice(-100); // Keep last 100 points
@@ -126,13 +126,7 @@ export function useCampusData() {
 
 
 // --- User Data Hook ---
-const MOCK_USERS: User[] = [
-    { id: 'user-1', name: 'Alex Johnson', email: 'alex.j@example.com', role: 'Admin', avatarUrl: 'https://picsum.photos/seed/user-1/40/40' },
-    { id: 'user-2', name: 'Maria Garcia', email: 'maria.g@example.com', role: 'Manager', avatarUrl: 'https://picsum.photos/seed/user-2/40/40' },
-    { id: 'user-3', name: 'James Smith', email: 'james.s@example.com', role: 'Operator', avatarUrl: 'https://picsum.photos/seed/user-3/40/40' },
-    { id: 'user-4', name: 'Priya Patel', email: 'priya.p@example.com', role: 'Operator', avatarUrl: 'https://picsum.photos/seed/user-4/40/40' },
-    { id: 'user-5', name: 'David Chen', email: 'david.c@example.com', role: 'Operator', avatarUrl: 'https://picsum.photos/seed/user-5/40/40' },
-];
+const MOCK_USERS: User[] = [];
 
 let userCounter = MOCK_USERS.length + 1;
 
@@ -150,7 +144,7 @@ export function useUsers() {
 
     const addUser = (user: Omit<User, 'id'>) => {
         const seed = user.name.split(' ').join('-') || `user-${Date.now()}`;
-        const id = `user-${Date.now()}-${userCounter++}`;
+        const id = `user-${Date.now()}-${userCounter++}-${Math.random()}`;
         const newUser: User = { 
             ...user, 
             id,

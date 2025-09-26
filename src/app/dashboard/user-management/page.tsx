@@ -2,63 +2,25 @@
 "use client";
 
 import { useState } from 'react';
-import { MoreHorizontal, PlusCircle, Upload } from 'lucide-react';
+import { Download, PlusCircle, AlertCircle as AlertCircleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { useUsers } from '@/lib/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User } from '@/lib/types';
-import UserForm from '@/components/dashboard/user-form';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function UserManagementPage() {
-    const { users, isLoading, addUser, updateUser, deleteUser } = useUsers();
+    const { users, isLoading, addUser } = useUsers();
     const { toast } = useToast();
-    const [isFormOpen, setFormOpen] = useState(false);
-    const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [deletingUser, setDeletingUser] = useState<User | null>(null);
+    const [csvError, setCsvError] = useState<string | null>(null);
 
-    const handleAddUser = () => {
-        setEditingUser(null);
-        setFormOpen(true);
-    };
-
-    const handleEditUser = (user: User) => {
-        setEditingUser(user);
-        setFormOpen(true);
-    };
-
-    const handleDeleteConfirm = (user: User) => {
-        setDeletingUser(user);
-    };
-    
-    const handleDeleteUser = () => {
-        if (deletingUser) {
-            deleteUser(deletingUser.id);
-            toast({ title: 'User Deleted', description: `${deletingUser.name} has been removed.` });
-            setDeletingUser(null);
-        }
-    };
-
-    const handleFormSubmit = (values: Omit<User, 'id' | 'avatarUrl'> & { avatarUrl?: string }) => {
-        if (editingUser) {
-            updateUser(editingUser.id, values);
-            toast({ title: 'User Updated', description: `Details for ${values.name} have been updated.` });
-        } else {
-            addUser(values);
-            toast({ title: 'User Added', description: `${values.name} has been added to the system.` });
-        }
-        setFormOpen(false);
-    };
-    
     const handleCsvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setCsvError(null);
         const file = event.target.files?.[0];
         if (!file) {
             return;
@@ -74,7 +36,7 @@ export default function UserManagementPage() {
             try {
                 const lines = text.split('\n').filter(line => line.trim() !== '');
                 if (lines.length < 2) {
-                    toast({ variant: 'destructive', title: 'Invalid CSV file', description: 'File must contain a header and at least one data row.' });
+                    setCsvError('Invalid CSV file. File must contain a header and at least one data row.');
                     return;
                 }
                 const header = lines[0].split(',').map(h => h.trim());
@@ -83,7 +45,7 @@ export default function UserManagementPage() {
                 const roleIndex = header.indexOf('role');
 
                 if (nameIndex === -1 || emailIndex === -1 || roleIndex === -1) {
-                    toast({ variant: 'destructive', title: 'Invalid CSV format', description: 'CSV must include "name", "email", and "role" columns.' });
+                    setCsvError('Invalid CSV format. CSV must include "name", "email", and "role" columns.');
                     return;
                 }
 
@@ -96,8 +58,8 @@ export default function UserManagementPage() {
                     const email = data[emailIndex]?.trim();
                     let role = data[roleIndex]?.trim() as User['role'];
                     
-                    if (!['Admin', 'Manager', 'Operator'].includes(role)) {
-                        role = 'Operator'; // Default role if invalid one is provided
+                    if (!['Admin', 'Manager', 'Operator', 'Student', 'Staff'].includes(role)) {
+                        role = 'Student'; // Default role
                     }
 
                     if (name && email) {
@@ -112,27 +74,31 @@ export default function UserManagementPage() {
                 if (usersAdded > 0) {
                     toast({ title: 'CSV Processed', description: `${usersAdded} users were successfully added.` });
                 } else {
-                    toast({ variant: 'destructive', title: 'No users added', description: 'Could not find any valid user records in the CSV.' });
+                    setCsvError('No valid user records found in the CSV to add.');
                 }
 
             } catch (error) {
-                toast({ variant: 'destructive', title: 'CSV Parsing Error', description: 'Failed to parse the CSV file. Please check its format.' });
+                const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+                setCsvError(`Failed to parse the CSV file. Please check its format. Error: ${errorMessage}`);
             }
         };
         reader.readAsText(file);
-        // Reset file input
         event.target.value = '';
     };
 
+    const handleDownloadSample = () => {
+        const csvContent = "data:text/csv;charset=utf-8,name,email,role\nJohn Doe,john.doe@university.edu,student\nJane Smith,jane.smith@university.edu,staff";
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "sample_users.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
-    const roleBadgeVariant: Record<User['role'], 'default' | 'secondary' | 'outline'> = {
-        'Admin': 'default',
-        'Manager': 'secondary',
-        'Operator': 'outline',
-    }
-    
     const renderSkeleton = () => (
-        Array.from({ length: 5 }).map((_, i) => (
+        Array.from({ length: 3 }).map((_, i) => (
           <TableRow key={`skeleton-user-${i}`}>
             <TableCell>
                 <div className="flex items-center gap-4">
@@ -144,153 +110,95 @@ export default function UserManagementPage() {
                 </div>
             </TableCell>
             <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
           </TableRow>
         ))
       );
 
 
   return (
-    <>
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">
-            User Management
-          </h1>
-          <p className="text-muted-foreground">
-            Manage users and their permissions.
-          </p>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-            <Card>
+    <div className="grid gap-4">
+        <Card>
             <CardHeader>
-                <div className="flex justify-between items-center">
-                    <div>
-                        <CardTitle>Users</CardTitle>
-                        <CardDescription>
-                            A list of all the users in the system.
-                        </CardDescription>
-                    </div>
-                    <Button onClick={handleAddUser}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add User
-                    </Button>
-                </div>
+                <CardTitle>Upload Users</CardTitle>
+                <CardDescription>
+                    Upload a CSV file with student and staff email addresses. Format: name, email, type (student/staff)
+                </CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>User</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead><span className="sr-only">Actions</span></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading && renderSkeleton()}
-                        {!isLoading && users.map(user => (
-                            <TableRow key={user.id}>
-                                <TableCell>
-                                    <div className="flex items-center gap-4">
-                                        <Avatar>
-                                            <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-medium">{user.name}</p>
-                                            <p className="text-sm text-muted-foreground">{user.email}</p>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={roleBadgeVariant[user.role]}>{user.role}</Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <span className="sr-only">Open menu</span>
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onClick={() => handleEditUser(user)}>Edit</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleDeleteConfirm(user)} className="text-destructive focus:text-destructive-foreground focus:bg-destructive">Delete</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-                {!isLoading && users.length === 0 && (
-                    <div className="text-center text-muted-foreground py-16">
-                        <p>No users found.</p>
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4">
+                        <Input id="csv-upload" type="file" accept=".csv" onChange={handleCsvUpload} className="max-w-xs" />
+                        <Button variant="outline" onClick={handleDownloadSample}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Sample CSV
+                        </Button>
                     </div>
-                )}
+                    {csvError && (
+                         <Alert variant="destructive">
+                            <AlertCircleIcon className="h-4 w-4" />
+                            <AlertTitle>Upload Error</AlertTitle>
+                            <AlertDescription>
+                                {csvError}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                </div>
             </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Bulk Import</CardTitle>
+        </Card>
+
+        <Card>
+        <CardHeader>
+            <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>Registered Users ({users.length})</CardTitle>
                     <CardDescription>
-                        Add multiple users by uploading a CSV file.
+                        All students and staff registered for emergency alerts
                     </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-center w-full">
-                        <Label
-                            htmlFor="csv-upload"
-                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
-                        >
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                                <p className="mb-2 text-sm text-muted-foreground">
-                                    <span className="font-semibold">Click to upload</span> or drag and drop
-                                </p>
-                                <p className="text-xs text-muted-foreground">CSV file (MAX. 800x400px)</p>
-                            </div>
-                            <Input id="csv-upload" type="file" className="hidden" accept=".csv" onChange={handleCsvUpload} />
-                        </Label>
-                    </div>
-
-                    <p className="text-xs text-muted-foreground mt-4">
-                        File must contain 'name', 'email', and 'role' columns.
-                        <br/>
-                        Example format: 
-                        <code className="bg-muted p-1 rounded text-xs">name,email,role</code>, 
-                        <code className="bg-muted p-1 rounded text-xs">"John Doe",john@example.com,Operator</code>
-                    </p>
-                </CardContent>
-            </Card>
-        </div>
-      </div>
-
-      <UserForm 
-        open={isFormOpen}
-        onOpenChange={setFormOpen}
-        onSubmit={handleFormSubmit}
-        defaultValues={editingUser || undefined}
-      />
-      
-      <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the user account for {deletingUser?.name}.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setDeletingUser(null)}>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+                </div>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add User
+                </Button>
+            </div>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Role</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {isLoading && renderSkeleton()}
+                    {!isLoading && users.map(user => (
+                        <TableRow key={user.id}>
+                            <TableCell>
+                                <div className="flex items-center gap-4">
+                                    <Avatar>
+                                        <AvatarImage src={user.avatarUrl} alt={user.name} />
+                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-medium">{user.name}</p>
+                                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell className='capitalize'>
+                                {user.role}
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+            {!isLoading && users.length === 0 && (
+                <div className="text-center text-muted-foreground py-16">
+                    <p>No registered users found.</p>
+                </div>
+            )}
+        </CardContent>
+        </Card>
+    </div>
   );
 }
-
-    

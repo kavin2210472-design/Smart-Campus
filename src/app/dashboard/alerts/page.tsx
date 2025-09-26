@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
@@ -5,17 +6,9 @@ import { useCampusData } from '@/lib/hooks';
 import { PredictedAlert, ZoneStatus, Alert } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { getAqiPrediction } from '@/app/actions';
 import { AlertTriangle, Clock, Megaphone } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type DisplayAlert = {
@@ -36,27 +29,26 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
   const { zones, isLoading: isCampusDataLoading } = useCampusData();
   const [predictedAlerts, setPredictedAlerts] = useState<PredictedAlert[]>([]);
 
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  });
-
   useEffect(() => {
     if (!isCampusDataLoading && zones.length > 0) {
       const fetchPredictions = async () => {
-        const predictions = await Promise.all(
-          zones.map(zone => getAqiPrediction(zone.name, zone.historicalData))
-        );
-        const newPredictedAlerts = predictions
-            .filter(p => p && p.predictedAqi > 100)
-            .map(p => ({
-                ...p,
-                zoneName: p.zoneName, 
-                timestamp: new Date().toISOString(),
-                type: 'predicted'
-            })) as (PredictedAlert & { zoneName: string, timestamp: string, type: 'predicted' })[];
-        
-        setPredictedAlerts(newPredictedAlerts);
+        try {
+            const predictions = await Promise.all(
+              zones.map(zone => getAqiPrediction(zone.name, zone.historicalData))
+            );
+            const newPredictedAlerts = predictions
+                .filter(p => p && p.predictedAqi > 100)
+                .map(p => ({
+                    ...p,
+                    zoneName: p.zoneName, 
+                    timestamp: new Date().toISOString(),
+                    type: 'predicted'
+                })) as (PredictedAlert & { zoneName: string, timestamp: string, type: 'predicted' })[];
+            
+            setPredictedAlerts(newPredictedAlerts);
+        } catch(e) {
+            console.error(e);
+        }
       };
       fetchPredictions();
     }
@@ -132,17 +124,9 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
     
     const sortedAlerts = uniqueAlerts.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    return sortedAlerts.filter(alert => {
-        if(!date?.from) return true;
-        const alertDate = new Date(alert.timestamp);
-        const from = new Date(date.from);
-        from.setHours(0,0,0,0);
-        const to = date.to ? new Date(date.to) : new Date();
-        to.setHours(23,59,59,999);
-        return alertDate >= from && alertDate <= to;
-    });
+    return sortedAlerts;
 
-  }, [isCampusDataLoading, zones, predictedAlerts, date, manualAlerts]);
+  }, [isCampusDataLoading, zones, predictedAlerts, manualAlerts]);
 
 
   const isLoading = isCampusDataLoading;
@@ -176,7 +160,7 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={alert.badgeVariant} className={cn(alert.type === 'predicted' && 'border-accent text-accent-foreground')}>
+        <Badge variant={alert.badgeVariant}>
           {alert.badgeLabel}
         </Badge>
       </TableCell>
@@ -191,7 +175,7 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
           return (
               <TableRow>
                   <TableCell colSpan={4} className="h-24 text-center">
-                      No alerts found for the selected period.
+                      No alerts found.
                   </TableCell>
               </TableRow>
           );
@@ -199,132 +183,27 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
       return filteredAlerts.map(renderAlertRow);
   }
 
-  const tableHeader = (
-    <TableHeader>
-      <TableRow>
-        <TableHead>Zone</TableHead>
-        <TableHead>Type</TableHead>
-        <TableHead>Message</TableHead>
-        <TableHead>Timestamp</TableHead>
-      </TableRow>
-    </TableHeader>
-  );
-
-  const activeAlerts = allAlerts.filter(a => a.type === 'current');
-  const predictedAlertsFiltered = allAlerts.filter(a => a.type === 'predicted');
-  const historicalAlertsFiltered = allAlerts.filter(a => a.type === 'historical');
-  const manualAlertsFiltered = allAlerts.filter(a => a.type === 'manual');
-
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">
-          Alerts Log
-        </h1>
-        <p className="text-muted-foreground">
-          A historical record of all campus environmental alerts.
-        </p>
-      </div>
-
-      <Card>
+    <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <CardTitle>Alert History</CardTitle>
-                <CardDescription>Browse and filter through all recorded alerts.</CardDescription>
-            </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant={"outline"}
-                  className={cn(
-                    "w-full sm:w-[300px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, "LLL dd, y")} -{" "}
-                        {format(date.to, "LLL dd, y")}
-                      </>
-                    ) : (
-                      format(date.from, "LLL dd, y")
-                    )
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={setDate}
-                  numberOfMonths={2}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+            <CardTitle>Alert History</CardTitle>
+            <CardDescription>A historical record of all campus environmental alerts.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="all">
-            <TabsList>
-              <TabsTrigger value="all">All Alerts</TabsTrigger>
-              <TabsTrigger value="active">Active</TabsTrigger>
-              <TabsTrigger value="predicted">Predicted</TabsTrigger>
-              <TabsTrigger value="historical">Historical</TabsTrigger>
-              <TabsTrigger value="manual">Manual</TabsTrigger>
-            </TabsList>
-            <div className="mt-4">
-                <TabsContent value="all">
-                  <Table>
-                    {tableHeader}
-                    <TableBody>
-                      {renderTableContent(allAlerts)}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-                <TabsContent value="active">
-                   <Table>
-                    {tableHeader}
-                    <TableBody>
-                      {renderTableContent(activeAlerts)}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-                <TabsContent value="predicted">
-                   <Table>
-                    {tableHeader}
-                    <TableBody>
-                      {renderTableContent(predictedAlertsFiltered)}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-                <TabsContent value="historical">
-                   <Table>
-                    {tableHeader}
-                    <TableBody>
-                      {renderTableContent(historicalAlertsFiltered)}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-                <TabsContent value="manual">
-                   <Table>
-                    {tableHeader}
-                    <TableBody>
-                      {renderTableContent(manualAlertsFiltered)}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-            </div>
-          </Tabs>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Zone</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Message</TableHead>
+                        <TableHead>Timestamp</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {renderTableContent(allAlerts)}
+                </TableBody>
+            </Table>
         </CardContent>
-      </Card>
-    </div>
+    </Card>
   );
 }
