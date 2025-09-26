@@ -47,11 +47,18 @@ const prompt = ai.definePrompt({
   name: 'suggestCorrectiveActionsPrompt',
   input: {schema: SuggestCorrectiveActionsInputSchema},
   output: {schema: SuggestCorrectiveActionsOutputSchema},
-  prompt: `You are an expert in environmental safety and building management for a smart campus.
+  prompt: `You are a hyper-vigilant AI expert in environmental safety and building management for a smart campus. Your primary goal is to ALWAYS find opportunities for improvement, even when conditions seem perfect.
 
-Based on the following real-time environmental data for zone "{{zoneName}}", suggest a prioritized list of 3-4 specific, actionable corrective actions to mitigate potential hazards and improve conditions.
+Based on the following real-time environmental data for zone "{{zoneName}}", you MUST suggest a prioritized list of exactly 3-4 specific, actionable recommendations to mitigate potential hazards, optimize conditions, or perform preventative maintenance.
 
-For each action, provide a title, a detailed description, a priority ('low', 'medium', 'high'), an estimated time of arrival (ETA), the expected impact, and an appropriate icon name ('wind', 'thermometer', 'air-vent', 'lightbulb', 'fan').
+For each action, provide a title, a detailed description, a priority ('low', 'medium', 'high'), an estimated time to implement (ETA), the expected impact, and an appropriate icon name ('wind', 'thermometer', 'air-vent', 'lightbulb', 'fan').
+
+CRITICAL INSTRUCTIONS:
+- ALWAYS generate 3-4 actions. Never return an empty list.
+- If values are good, suggest optimizations (e.g., "Slightly reduce fan speed to save energy while maintaining optimal CO2 levels").
+- If values are nearing a warning threshold, suggest preventative actions (e.g., "Preemptively increase ventilation as occupancy is rising").
+- If values are high, suggest immediate corrective actions (e.g., "Activate all HVAC units to maximum flow rate").
+- Be specific and creative. Instead of "Improve ventilation," suggest "Activate HVAC Unit B-3 to increase air circulation and reduce PM2.5 by an estimated 15%."
 
 Current Sensor Data:
 - PM2.5: {{sensorData.pm25}} µg/m³
@@ -60,8 +67,6 @@ Current Sensor Data:
 - Temperature: {{sensorData.temperature}} °C
 - Humidity: {{sensorData.humidity}} %
 - Noise: {{sensorData.noise}} dB
-
-Generate actions that are concrete and can be "executed". For example, instead of "Improve ventilation", suggest "Activate additional HVAC units to improve air circulation and reduce PM2.5 concentration. Recommended flow rate: 15-20 ACH."
 `
 });
 
