@@ -11,6 +11,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import * as nodemailer from 'nodemailer';
 
 const SendEmergencyAlertInputSchema = z.object({
   zoneName: z.string().describe('The campus zone the alert is for. Can be "all-zones".'),
@@ -20,7 +21,7 @@ const SendEmergencyAlertInputSchema = z.object({
 export type SendEmergencyAlertInput = z.infer<typeof SendEmergencyAlertInputSchema>;
 
 const SendEmergencyAlertOutputSchema = z.object({
-  confirmationMessage: z.string().describe('A confirmation that the alert was processed successfully.'),
+  confirmationMessage: z.string().describe('A confirmation that the alert was processed and sent successfully.'),
   emailSubject: z.string().describe('The subject line of the email.'),
   emailBody: z.string().describe('The body content of the email.'),
 });
@@ -40,7 +41,7 @@ const prompt = ai.definePrompt({
     The alert is for: {{{zoneName}}}
     The core message is: {{{customMessage}}}
 
-    1.  **Create a confirmation message.** It should state that the alert for the specified zone has been successfully processed and is being dispatched.
+    1.  **Create a confirmation message.** It should state that an emergency alert for the specified zone has been successfully dispatched to all users.
     2.  **Create a clear and concise email subject line.** Start it with "EMERGENCY ALERT:".
     3.  **Write a formal email body.**
         - Start with a direct and urgent opening.
@@ -58,20 +59,41 @@ const sendEmergencyAlertFlow = ai.defineFlow(
     outputSchema: SendEmergencyAlertOutputSchema,
   },
   async (input) => {
+    // 1. Generate the email content using the AI prompt
     const { output } = await prompt(input);
 
     if (!output) {
       throw new Error('AI failed to generate an alert.');
     }
 
-    // In a real application, this is where you would integrate with an email service (e.g., SendGrid, Mailgun)
-    // to send the generated email to the list of `input.userEmails`.
-    // For this simulation, we will just log the action and the generated content.
-    console.log('--- SIMULATING EMAIL DISPATCH ---');
-    console.log(`Subject: ${output.emailSubject}`);
-    console.log('Recipients:', input.userEmails.join(', '));
-    console.log('--- End of Simulation ---');
+    // 2. Set up the Nodemailer transporter using credentials from .env
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASS,
+        },
+    });
+
+    // 3. Define the email options
+    const mailOptions = {
+        from: process.env.GMAIL_USER,
+        to: input.userEmails.join(', '), // Send to all users
+        subject: output.emailSubject,
+        html: output.emailBody,
+    };
+
+    // 4. Send the email
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Emergency alert email sent successfully to: ${input.userEmails.join(', ')}`);
+    } catch (error) {
+        console.error('Nodemailer error:', error);
+        // If email fails, we throw an error to be caught by the calling action
+        throw new Error('Failed to send email. Please check server logs and .env configuration.');
+    }
     
+    // 5. Return the generated content for UI confirmation
     return output;
   }
 );
