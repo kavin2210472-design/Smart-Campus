@@ -68,7 +68,9 @@ const sendEmergencyAlertFlow = ai.defineFlow(
 
     // 2. Set up the Nodemailer transporter using credentials from .env
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true, // use SSL
         auth: {
             user: process.env.GMAIL_USER,
             pass: process.env.GMAIL_APP_PASS,
