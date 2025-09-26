@@ -17,7 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import UserForm from '@/components/dashboard/user-form';
 import { useUsers, addUser, addUsers, updateUser, deleteUser } from '@/lib/hooks';
 
-export default function UserManagementPage() {
+export default function UserManagement() {
     const { users, isLoading } = useUsers();
     const { toast } = useToast();
     const [csvError, setCsvError] = useState<string | null>(null);
@@ -272,5 +272,3 @@ export default function UserManagementPage() {
     </div>
   );
 }
-
-    

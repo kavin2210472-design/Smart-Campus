@@ -3,7 +3,7 @@
 
 import { AlertCircle, Users, RefreshCw } from "lucide-react";
 import StatsCard from "@/components/dashboard/stats-card";
-import UserManagementPage from "./user-management/page";
+import UserManagement from "@/components/dashboard/user-management";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AlertsLogPage from "./alerts/page";
 import { useUsers } from "@/lib/hooks";
@@ -52,7 +52,7 @@ export default function Dashboard() {
             <TabsTrigger value="alert-history">Alert History</TabsTrigger>
         </TabsList>
         <TabsContent value="user-management">
-            <UserManagementPage />
+            <UserManagement />
         </TabsContent>
         <TabsContent value="emergency-alerts">
             <EmergencyAlertForm onAlertSent={handleAlertSent} zones={zones} />
@@ -65,5 +65,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-    
