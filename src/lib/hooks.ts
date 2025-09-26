@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { ZoneStatus } from './types';
-import type { Zone, SensorValues, HistoricalDataPoint, User } from './types';
+import type { Zone, SensorValues, HistoricalDataPoint, User, MaintenanceTask, Thresholds } from './types';
 
 // --- Configuration ---
 const ZONES_CONFIG: Omit<Zone, 'status' | 'currentData' | 'historicalData' | 'location' | 'lastUpdated'>[] = [
@@ -17,7 +17,7 @@ const ZONES_CONFIG: Omit<Zone, 'status' | 'currentData' | 'historicalData' | 'lo
 const UPDATE_INTERVAL = 2000; // 2 seconds
 
 // --- Sensor Thresholds (WHO guidelines) ---
-export const THRESHOLDS = {
+const DEFAULT_THRESHOLDS: Thresholds = {
   pm25: { good: 12, warning: 35, unsafe: 55, limit: 35 },
   co2: { good: 800, warning: 1500, unsafe: 2500, limit: 1500 },
   voc: { good: 250, warning: 500, unsafe: 1000, limit: 500 },
@@ -25,6 +25,8 @@ export const THRESHOLDS = {
   humidity: { good: 50, warning: 70, unsafe: 80, limit: 80 },
   noise: { good: 60, warning: 70, unsafe: 85, limit: 70 },
 };
+
+export const THRESHOLDS = DEFAULT_THRESHOLDS; // For components that don't use the hook
 
 // --- Helper Functions ---
 const generateInitialSensorData = (): SensorValues => ({
@@ -44,16 +46,15 @@ const simulateDataChange = (value: number, fluctuation: number, spikeChance: num
   return Math.max(min, Math.min(newValue, max));
 };
 
-
-const getZoneStatus = (data: SensorValues): ZoneStatus => {
+const getZoneStatus = (data: SensorValues, thresholds: Thresholds): ZoneStatus => {
   let unsafeCount = 0;
   let warningCount = 0;
 
-  for (const key of Object.keys(THRESHOLDS)) {
+  for (const key of Object.keys(thresholds)) {
     const metric = key as keyof SensorValues;
-    if (data[metric] > THRESHOLDS[metric].unsafe) {
+    if (data[metric] > thresholds[metric].unsafe) {
       unsafeCount++;
-    } else if (data[metric] > THRESHOLDS[metric].warning) {
+    } else if (data[metric] > thresholds[metric].warning) {
       warningCount++;
     }
   }
@@ -64,10 +65,25 @@ const getZoneStatus = (data: SensorValues): ZoneStatus => {
   return ZoneStatus.Safe;
 };
 
+// --- In-memory state and listeners ---
+let thresholdsState: Thresholds = JSON.parse(JSON.stringify(DEFAULT_THRESHOLDS));
+const thresholdListeners: Set<(thresholds: Thresholds) => void> = new Set();
+
+const broadcastThresholds = () => {
+    thresholdListeners.forEach(listener => listener(JSON.parse(JSON.stringify(thresholdsState))));
+};
+
 // --- Main Hook ---
 export function useCampusData() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentThresholds, setCurrentThresholds] = useState(thresholdsState);
+
+  useEffect(() => {
+    const listener = (newThresholds: Thresholds) => setCurrentThresholds(newThresholds);
+    thresholdListeners.add(listener);
+    return () => { thresholdListeners.delete(listener); };
+  }, []);
 
   useEffect(() => {
     // Initial data generation
@@ -84,7 +100,7 @@ export function useCampusData() {
         ...config,
         currentData,
         historicalData,
-        status: getZoneStatus(currentData),
+        status: getZoneStatus(currentData, currentThresholds),
         location: `Building ${String.fromCharCode(65 + index)}, Floor ${index + 1}`,
         lastUpdated: new Date().toISOString(),
       };
@@ -114,7 +130,7 @@ export function useCampusData() {
             ...zone,
             currentData: newValues,
             historicalData: newHistoricalData,
-            status: getZoneStatus(newValues),
+            status: getZoneStatus(newValues, currentThresholds),
             lastUpdated: new Date().toISOString(),
           };
         });
@@ -122,7 +138,7 @@ export function useCampusData() {
     }, UPDATE_INTERVAL);
 
     return () => clearInterval(intervalId);
-  }, [isLoading]);
+  }, [isLoading, currentThresholds]);
 
   return { zones, isLoading };
 }
@@ -137,12 +153,11 @@ const MOCK_USERS: User[] = [
 
 let userCounter = MOCK_USERS.length + 1;
 
-// The state needs to be managed outside the hook to be shared across components.
 let inMemoryUsers: User[] = [...MOCK_USERS];
-const listeners: Set<(users: User[]) => void> = new Set();
+const userListeners: Set<(users: User[]) => void> = new Set();
 
 const broadcastUsers = () => {
-    listeners.forEach(listener => listener([...inMemoryUsers]));
+    userListeners.forEach(listener => listener([...inMemoryUsers]));
 };
 
 export const addUser = (user: Omit<User, 'id' | 'avatarUrl'>) => {
@@ -192,7 +207,6 @@ export function useUsers() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate fetching data
         const timeout = setTimeout(() => {
             setUsers(inMemoryUsers);
             setIsLoading(false);
@@ -201,13 +215,80 @@ export function useUsers() {
         const listener = (newUsers: User[]) => {
             setUsers(newUsers);
         };
-        listeners.add(listener);
+        userListeners.add(listener);
 
         return () => {
-            listeners.delete(listener);
+            userListeners.delete(listener);
             clearTimeout(timeout);
         };
     }, []);
 
     return { users, isLoading, addUser, addUsers, updateUser, deleteUser };
+}
+
+// --- Maintenance Tasks Hook ---
+const MOCK_TASKS: MaintenanceTask[] = [
+    { id: 'task-1', task: 'Clean HVAC filters', zone: 'Main Library', priority: 'Medium', dueDate: '2024-08-15', status: 'Pending' },
+    { id: 'task-2', task: 'Calibrate CO2 sensors', zone: 'Science Lab', priority: 'High', dueDate: '2024-08-10', status: 'Pending' },
+];
+let taskCounter = MOCK_TASKS.length + 1;
+let inMemoryTasks: MaintenanceTask[] = [...MOCK_TASKS];
+const taskListeners: Set<(tasks: MaintenanceTask[]) => void> = new Set();
+const broadcastTasks = () => taskListeners.forEach(l => l([...inMemoryTasks]));
+
+export function useMaintenanceTasks() {
+    const [tasks, setTasks] = useState<MaintenanceTask[]>(inMemoryTasks);
+
+    useEffect(() => {
+        const listener = (newTasks: MaintenanceTask[]) => setTasks(newTasks);
+        taskListeners.add(listener);
+        return () => { taskListeners.delete(listener); };
+    }, []);
+
+    const addTask = (task: Omit<MaintenanceTask, 'id'>) => {
+        const newTask = { ...task, id: `task-${taskCounter++}` };
+        inMemoryTasks = [newTask, ...inMemoryTasks];
+        broadcastTasks();
+    };
+
+    const deleteTask = (taskId: string) => {
+        inMemoryTasks = inMemoryTasks.filter(t => t.id !== taskId);
+        broadcastTasks();
+    };
+
+    return { tasks, addTask, deleteTask };
+}
+
+// --- Thresholds Hook ---
+export function useThresholds() {
+    const [thresholds, setThresholds] = useState<Thresholds>(thresholdsState);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setThresholds(thresholdsState);
+            setIsLoading(false);
+        }, 300);
+
+        const listener = (newThresholds: Thresholds) => setThresholds(newThresholds);
+        thresholdListeners.add(listener);
+
+        return () => {
+            clearTimeout(timeout);
+            thresholdListeners.delete(listener);
+        };
+    }, []);
+
+    const updateThresholds = (newThresholds: Thresholds) => {
+        thresholdsState = newThresholds;
+        broadcastThresholds();
+    };
+
+    const resetThresholds = () => {
+        thresholdsState = JSON.parse(JSON.stringify(DEFAULT_THRESHOLDS));
+        broadcastThresholds();
+        return thresholdsState;
+    }
+
+    return { thresholds, setThresholds: updateThresholds, resetThresholds, isLoading };
 }

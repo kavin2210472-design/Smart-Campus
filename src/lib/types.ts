@@ -1,4 +1,5 @@
 
+
 export type SensorValues = {
   pm25: number;
   co2: number;
@@ -68,4 +69,22 @@ export type User = {
     email: string;
     role: 'Admin' | 'Manager' | 'Operator' | 'Student' | 'Staff';
     avatarUrl?: string;
+};
+
+export type MaintenanceTask = {
+    id: string;
+    task: string;
+    zone: string;
+    priority: 'Low' | 'Medium' | 'High';
+    dueDate: string;
+    status: 'Pending' | 'Completed';
+};
+
+export type Thresholds = {
+    [key in keyof SensorValues]: {
+        good: number;
+        warning: number;
+        unsafe: number;
+        limit: number;
+    };
 };

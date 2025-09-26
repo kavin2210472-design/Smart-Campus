@@ -21,6 +21,7 @@ import AlertHistoryTab from '@/components/dashboard/alerts/alert-history-tab';
 import { Button } from '@/components/ui/button';
 import ManualAlertForm from '@/components/dashboard/alerts/manual-alert-form';
 import { Alert } from '@/lib/types';
+import SystemHealthTab from '@/components/dashboard/admin/system-health-tab';
 
 
 export default function AlertManagementPage() {
@@ -117,9 +118,8 @@ export default function AlertManagementPage() {
           <AlertHistoryTab manualAlerts={manualAlerts} />
         </TabsContent>
         <TabsContent value="system-health">
-            <div className="text-center py-16 text-muted-foreground">
-                System health monitoring coming soon.
-            </div>
+            <p className="text-sm text-muted-foreground mt-2 mb-4">Monitor system status and performance</p>
+            <SystemHealthTab />
         </TabsContent>
       </Tabs>
     </div>

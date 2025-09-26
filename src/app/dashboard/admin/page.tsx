@@ -19,6 +19,10 @@ import AdminStatCard from '@/components/dashboard/admin/admin-stat-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SystemHealthTab from '@/components/dashboard/admin/system-health-tab';
 import UserManagementTab from '@/components/dashboard/admin/user-management-tab';
+import ManualOverrideTab from '@/components/dashboard/admin/manual-override-tab';
+import MaintenanceTab from '@/components/dashboard/admin/maintenance-tab';
+import AlertConfigTab from '@/components/dashboard/admin/alert-config-tab';
+import LiveMonitoringTab from '@/components/dashboard/admin/live-monitoring-tab';
 
 export default function AdminPage() {
   return (
@@ -115,24 +119,20 @@ export default function AdminPage() {
           <UserManagementTab />
         </TabsContent>
         <TabsContent value="manual-override">
-            <div className="text-center py-16 text-muted-foreground">
-                Manual override configuration coming soon.
-            </div>
+          <p className="text-sm text-muted-foreground mt-2 mb-4">Directly control campus systems and trigger immediate actions.</p>
+          <ManualOverrideTab />
         </TabsContent>
          <TabsContent value="maintenance">
-            <div className="text-center py-16 text-muted-foreground">
-                Maintenance scheduling coming soon.
-            </div>
+            <p className="text-sm text-muted-foreground mt-2 mb-4">Schedule and track maintenance tasks for sensors and equipment.</p>
+            <MaintenanceTab />
         </TabsContent>
          <TabsContent value="alert-config">
-            <div className="text-center py-16 text-muted-foreground">
-                Alert configuration settings coming soon.
-            </div>
+            <p className="text-sm text-muted-foreground mt-2 mb-4">Adjust sensitivity thresholds for environmental alerts.</p>
+            <AlertConfigTab />
         </TabsContent>
         <TabsContent value="monitoring">
-            <div className="text-center py-16 text-muted-foreground">
-                Live monitoring dashboard coming soon.
-            </div>
+            <p className="text-sm text-muted-foreground mt-2 mb-4">View a live feed of all sensor data from across the campus.</p>
+            <LiveMonitoringTab />
         </TabsContent>
       </Tabs>
     </div>
