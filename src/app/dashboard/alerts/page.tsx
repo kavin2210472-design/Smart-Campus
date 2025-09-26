@@ -213,7 +213,7 @@ export default function AlertsLogPage({ manualAlerts = [] }: AlertsLogPageProps)
     </TableHeader>
   );
 
-  const activeAlerts = allAlerts.filter(a => a.type === 'current' || a.type === 'manual');
+  const activeAlerts = allAlerts.filter(a => a.type === 'current');
   const predictedAlertsFiltered = allAlerts.filter(a => a.type === 'predicted');
   const historicalAlertsFiltered = allAlerts.filter(a => a.type === 'historical');
 
