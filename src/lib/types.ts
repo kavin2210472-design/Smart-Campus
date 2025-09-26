@@ -36,6 +36,10 @@ export type Alert = {
   message: string;
   timestamp: string;
   type: 'current' | 'predicted' | 'manual' | 'historical';
+  alertType?: string;
+  severity?: 'Critical' | 'High' | 'Medium' | 'Low';
+  currentValue?: string;
+  status?: 'Active' | 'Acknowledged' | 'Resolved';
 };
 
 export type PredictedAlert = {
