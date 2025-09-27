@@ -42,7 +42,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
     };
 
     fetchActions();
-  }, [zone]);
+  }, [zone.id, zone.name]);
 
   const renderSkeleton = () => (
     <div className="flex flex-col gap-4">

@@ -51,7 +51,7 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
     };
 
     fetchPrediction();
-  }, [zone]);
+  }, [zone.id, zone.name]);
 
   const renderSkeleton = () => (
     <div className="space-y-4 pt-4">
