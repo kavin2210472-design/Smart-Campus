@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getCorrectiveActions } from '@/app/actions';
 import { cn } from '@/lib/utils';
-import type { Zone, CorrectiveAction as ActionType, ZoneStatus } from '@/lib/types';
+import { ZoneStatus } from '@/lib/types';
+import type { Zone, CorrectiveAction as ActionType } from '@/lib/types';
 import { Wind, Thermometer, Fan, Lightbulb, AirVent, Zap, Clock, TrendingUp, ShieldCheck } from 'lucide-react';
 
 const iconMap = {
@@ -69,7 +70,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
     return () => {
         isMounted = false;
     };
-  }, [zone.id, zone.name, isUnstable]); // Depend on isUnstable
+  }, [zone.id, zone.name, isUnstable]);
 
   const renderSkeleton = () => (
     <div className="flex flex-col gap-4">
