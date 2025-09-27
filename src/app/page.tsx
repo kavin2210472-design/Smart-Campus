@@ -40,9 +40,11 @@ export default function LoginPage() {
               </div>
               <Input id="password" type="password" placeholder='admin123' defaultValue="admin123" required />
             </div>
-            <Button type="submit" className="w-full" asChild>
-              <Link href="/dashboard">Login</Link>
-            </Button>
+            <Link href="/dashboard" className='w-full'>
+              <Button type="submit" className="w-full">
+                Login
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
