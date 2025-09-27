@@ -1,8 +1,9 @@
 
 'use client';
 
+import { useContext, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutGrid,
   Siren,
@@ -34,12 +35,13 @@ import {
   SidebarFooter,
   SidebarInset,
 } from '@/components/ui/sidebar';
+import { AuthContext } from '@/context/auth-context';
 
-const navItems = [
-  { href: '/dashboard/overview', icon: LayoutGrid, label: 'Dashboard' },
-  { href: '/dashboard/analysis', icon: BarChart2, label: 'Zone Analysis' },
-  { href: '/dashboard/alerts', icon: Siren, label: 'Alert Management' },
-  { href: '/dashboard/admin', icon: Settings, label: 'System Admin' },
+const allNavItems = [
+  { href: '/dashboard/overview', icon: LayoutGrid, label: 'Dashboard', role: ['admin', 'student'] },
+  { href: '/dashboard/analysis', icon: BarChart2, label: 'Zone Analysis', role: ['admin', 'student'] },
+  { href: '/dashboard/alerts', icon: Siren, label: 'Alert Management', role: ['admin'] },
+  { href: '/dashboard/admin', icon: Settings, label: 'System Admin', role: ['admin'] },
 ];
 
 export default function DashboardLayout({
@@ -48,6 +50,43 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { role, setRole } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (!role) {
+      router.replace('/');
+    }
+  }, [role, router]);
+
+  const navItems = useMemo(() => {
+    if (!role) return [];
+    return allNavItems.filter(item => item.role.includes(role));
+  }, [role]);
+
+  // If the student tries to access a restricted page, redirect them
+  useEffect(() => {
+      if (role === 'student') {
+          const currentItem = allNavItems.find(item => item.href === pathname);
+          if (currentItem && !currentItem.role.includes('student')) {
+              router.replace('/dashboard/overview');
+          }
+      }
+  }, [pathname, role, router]);
+
+
+  const handleLogout = () => {
+    setRole(null);
+    router.push('/');
+  };
+
+  if (!role) {
+      return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <p>Loading...</p>
+        </div>
+      );
+  }
 
   return (
     <SidebarProvider>
@@ -100,21 +139,19 @@ export default function DashboardLayout({
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <CircleUserRound className="h-4 w-4" />
-                  <span className="hidden sm:inline">Admin User</span>
+                  <span className="hidden sm:inline capitalize">{role} User</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Admin User</DropdownMenuLabel>
+                <DropdownMenuLabel className="capitalize">{role} User</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuItem>Support</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                 <Link href="/">
-                    <DropdownMenuItem>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </DropdownMenuItem>
-                  </Link>
+                 <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
