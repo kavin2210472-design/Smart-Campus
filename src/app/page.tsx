@@ -39,7 +39,7 @@ export default function LoginPage() {
                     <EcoWatchLogo className="h-8 w-8 text-primary" />
                     <h1 className="text-3xl font-bold">EcoWatch Campus</h1>
                 </div>
-                <p className="text-balance text-muted-foreground">
+                <p className="text-balance text-muted-foreground text-gray-300">
                     Smart environmental monitoring and alert system. Select a role to begin the demonstration.
                 </p>
             </div>
