@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { getAqiPrediction } from '@/app/actions';
-import { AlertTriangle, Clock, Megaphone } from 'lucide-react';
+import { AlertTriangle, Clock, Megaphone, CheckCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { format, subHours, subMinutes } from 'date-fns';
 
 type DisplayAlert = {
     id: string;
@@ -24,6 +25,38 @@ type DisplayAlert = {
 type AlertHistoryTabProps = {
     manualAlerts?: Alert[];
 }
+
+const now = new Date();
+const MOCK_HISTORICAL_ALERTS: DisplayAlert[] = [
+    {
+        id: 'mock-hist-1',
+        zoneName: 'Science Lab',
+        message: 'High VOC levels detected: 1250 ppb',
+        timestamp: format(subHours(now, 1), 'yyyy-MM-dd HH:mm:ss'),
+        type: 'historical',
+        badgeLabel: 'Resolved',
+        badgeVariant: 'secondary'
+    },
+    {
+        id: 'mock-hist-2',
+        zoneName: 'Cafeteria',
+        message: 'High CO2 levels during lunch peak: 2800 ppm',
+        timestamp: format(subHours(now, 4), 'yyyy-MM-dd HH:mm:ss'),
+        type: 'historical',
+        badgeLabel: 'Resolved',
+        badgeVariant: 'secondary'
+    },
+    {
+        id: 'mock-hist-3',
+        zoneName: 'Main Library',
+        message: 'Noise level exceeded threshold: 88 dB',
+        timestamp: format(subHours(now, 22), 'yyyy-MM-dd HH:mm:ss'),
+        type: 'historical',
+        badgeLabel: 'Resolved',
+        badgeVariant: 'secondary'
+    },
+];
+
 
 export default function AlertHistoryTab({ manualAlerts = [] }: AlertHistoryTabProps) {
   const { zones, isLoading: isCampusDataLoading } = useCampusData();
@@ -87,35 +120,7 @@ export default function AlertHistoryTab({ manualAlerts = [] }: AlertHistoryTabPr
         badgeLabel: 'Predicted',
         badgeVariant: 'outline'
     }));
-
-    const historicalAlerts: DisplayAlert[] = [];
-    zones.forEach(zone => {
-        zone.historicalData.forEach(dataPoint => {
-            if (dataPoint.pm25 > THRESHOLDS.pm25.unsafe) {
-                historicalAlerts.push({
-                    id: `hist-pm25-${zone.id}-${dataPoint.timestamp}`,
-                    zoneName: zone.name,
-                    message: `High PM2.5 level: ${dataPoint.pm25.toFixed(1)} µg/m³`,
-                    timestamp: new Date(dataPoint.timestamp).toLocaleString(),
-                    type: 'historical',
-                    badgeLabel: 'Historical',
-                    badgeVariant: 'secondary'
-                });
-            }
-            if (dataPoint.co2 > THRESHOLDS.co2.unsafe) {
-                historicalAlerts.push({
-                    id: `hist-co2-${zone.id}-${dataPoint.timestamp}`,
-                    zoneName: zone.name,
-                    message: `High CO2 level: ${dataPoint.co2.toFixed(0)} ppm`,
-                    timestamp: new Date(dataPoint.timestamp).toLocaleString(),
-                    type: 'historical',
-                    badgeLabel: 'Historical',
-                    badgeVariant: 'secondary'
-                });
-            }
-        });
-    });
-
+    
     const displayManualAlerts: DisplayAlert[] = manualAlerts.map(alert => ({
         id: alert.id,
         zoneName: alert.zoneName === 'all-zones' ? 'All Zones' : alert.zoneName,
@@ -126,8 +131,7 @@ export default function AlertHistoryTab({ manualAlerts = [] }: AlertHistoryTabPr
         badgeVariant: 'default'
     }));
     
-    const combined = [...displayManualAlerts, ...activeAlerts, ...futureAlerts, ...historicalAlerts];
-
+    const combined = [...displayManualAlerts, ...activeAlerts, ...futureAlerts, ...MOCK_HISTORICAL_ALERTS];
 
     const uniqueAlerts = Array.from(new Map(combined.map(a => [a.id, a])).values());
     
@@ -154,8 +158,9 @@ export default function AlertHistoryTab({ manualAlerts = [] }: AlertHistoryTabPr
   const getIconForType = (type: DisplayAlert['type']) => {
       switch(type) {
           case 'current': return <AlertTriangle className="h-4 w-4 text-destructive" />;
-          case 'predicted': return <Clock className="h-4 w-4 text-muted-foreground" />;
+          case 'predicted': return <Clock className="h-4 w-4 text-blue-500" />;
           case 'manual': return <Megaphone className="h-4 w-4 text-primary" />;
+          case 'historical': return <CheckCircle className="h-4 w-4 text-muted-foreground" />;
           default: return <Clock className="h-4 w-4 text-muted-foreground" />;
       }
   }
@@ -174,17 +179,17 @@ export default function AlertHistoryTab({ manualAlerts = [] }: AlertHistoryTabPr
         </Badge>
       </TableCell>
       <TableCell>{alert.message}</TableCell>
-      <TableCell>{alert.timestamp}</TableCell>
+      <TableCell>{format(new Date(alert.timestamp), 'PPpp')}</TableCell>
     </TableRow>
   );
   
   const renderTableContent = (filteredAlerts: DisplayAlert[]) => {
-      if (isLoading) return renderSkeleton();
+      if (isLoading && filteredAlerts.length === 0) return renderSkeleton();
       if (filteredAlerts.length === 0) {
           return (
               <TableRow>
                   <TableCell colSpan={4} className="h-24 text-center">
-                      No alerts found.
+                      No alert history found.
                   </TableCell>
               </TableRow>
           );
@@ -196,7 +201,7 @@ export default function AlertHistoryTab({ manualAlerts = [] }: AlertHistoryTabPr
     <Card>
         <CardHeader>
             <CardTitle>Alert History</CardTitle>
-            <CardDescription>A historical record of all campus environmental alerts.</CardDescription>
+            <CardDescription>A historical log of all campus environmental alerts.</CardDescription>
         </CardHeader>
         <CardContent>
             <Table>
