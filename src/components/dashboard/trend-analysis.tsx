@@ -24,7 +24,8 @@ import {
 import ZoneChart from '@/components/dashboard/zone-chart';
 import type { Zone, SensorValues } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { THRESHOLDS } from '@/lib/hooks';
+import { format } from 'date-fns';
+
 
 type TrendAnalysisProps = {
   zone: Zone;
@@ -81,6 +82,34 @@ export default function TrendAnalysis({ zone }: TrendAnalysisProps) {
     </div>
   );
 
+  const handleExport = () => {
+    const headers = ['timestamp', 'pm25', 'co2', 'voc', 'temperature', 'humidity', 'noise'];
+    const csvRows = [
+      headers.join(','),
+      ...historicalData.map(row => {
+        const formattedTimestamp = format(new Date(row.timestamp), 'yyyy-MM-dd HH:mm:ss');
+        const values = headers.map(header => {
+            if (header === 'timestamp') return `"${formattedTimestamp}"`;
+            return row[header as MetricKey].toFixed(2);
+        });
+        return values.join(',');
+      })
+    ];
+    
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${zone.name}_data_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -100,7 +129,7 @@ export default function TrendAnalysis({ zone }: TrendAnalysisProps) {
                 <SelectItem value="24">Last 24 Hours</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" className="gap-2">
+            <Button variant="outline" className="gap-2" onClick={handleExport}>
               <Download className="h-4 w-4" />
               Export
             </Button>
