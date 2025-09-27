@@ -97,6 +97,35 @@ This project requires two separate development servers to be running at the same
     npm run genkit:watch
     ```
 
+## Deploying to Firebase
+
+To deploy your application and make it publicly available, you can use Firebase App Hosting.
+
+1.  **Install the Firebase CLI** if you haven't already:
+    ```bash
+    npm install -g firebase-tools
+    ```
+
+2.  **Log in to Firebase**:
+    ```bash
+    firebase login
+    ```
+    This will open a browser window for you to log in to your Google account.
+
+3.  **Initialize Firebase in your project**:
+    ```bash
+    firebase init
+    ```
+    - When prompted, select **App Hosting**.
+    - Follow the on-screen instructions to select your Firebase project.
+
+4.  **Deploy your app**:
+    ```bash
+    firebase deploy
+    ```
+
+After the deployment is complete, the Firebase CLI will give you a public URL where you can see your live web app. It will look something like `https://your-project-id.web.app`.
+
 ## Publishing to GitHub
 
 To publish your project to a new GitHub repository, follow these steps:
