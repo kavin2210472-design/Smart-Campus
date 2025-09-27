@@ -37,26 +37,37 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchPrediction = async () => {
-      // Don't set loading to true on interval refreshes, only on initial load
-      if (!predictions.length) setIsLoading(true);
       try {
         const result = await getAqiPrediction(zone.name, zone.historicalData);
-        setPredictions(result?.alerts ?? []);
+        if (isMounted) {
+          setPredictions(result?.alerts ?? []);
+        }
       } catch (error) {
         console.error('Failed to fetch AQI prediction:', error);
-        setPredictions([]);
+        if (isMounted) {
+          setPredictions([]);
+        }
       } finally {
-        setIsLoading(false);
+         if (isMounted && isLoading) {
+            setIsLoading(false);
+         }
       }
     };
 
-    fetchPrediction(); // Fetch immediately on zone change
+    // Set loading to true only when the zone ID changes
+    setIsLoading(true);
+    fetchPrediction(); // Fetch immediately
 
-    const intervalId = setInterval(fetchPrediction, 10000); // And then every 10 seconds
+    const intervalId = setInterval(fetchPrediction, 10000); // Refresh every 10 seconds
 
-    return () => clearInterval(intervalId); // Cleanup on component unmount or zone change
-  }, [zone.id]); // Rerun effect only when zone ID changes
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, [zone.id]);
 
   const renderSkeleton = () => (
     <div className="space-y-4 pt-4">
