@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getCorrectiveActions } from '@/app/actions';
 import { cn } from '@/lib/utils';
-import type { Zone, CorrectiveAction as ActionType } from '@/lib/types';
-import { Wind, Thermometer, Fan, Lightbulb, AirVent, Zap, Clock, TrendingUp } from 'lucide-react';
+import type { Zone, CorrectiveAction as ActionType, ZoneStatus } from '@/lib/types';
+import { Wind, Thermometer, Fan, Lightbulb, AirVent, Zap, Clock, TrendingUp, ShieldCheck } from 'lucide-react';
 
 const iconMap = {
     wind: Wind,
@@ -31,10 +31,18 @@ const priorityStyles = {
 
 export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
   const [actions, setActions] = useState<ActionType[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const isUnstable = zone.status === ZoneStatus.Unsafe;
 
   useEffect(() => {
     let isMounted = true;
+    
+    if (!isUnstable) {
+        setActions([]);
+        return;
+    }
+
     setIsLoading(true);
 
     const fetchActions = async () => {
@@ -55,15 +63,12 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
       }
     };
 
-    fetchActions(); // Fetch immediately on zone change
-
-    const intervalId = setInterval(fetchActions, 30000); // And then every 30 seconds
+    fetchActions();
 
     return () => {
         isMounted = false;
-        clearInterval(intervalId);
-    }; // Cleanup on component unmount or zone change
-  }, [zone.id, zone.name]);
+    };
+  }, [zone.id, zone.name, isUnstable]); // Depend on isUnstable
 
   const renderSkeleton = () => (
     <div className="flex flex-col gap-4">
@@ -89,11 +94,17 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
     </div>
   );
 
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted/50 h-48 text-center p-4">
+      <ShieldCheck className="h-8 w-8 text-green-500 mb-2" />
+      <h3 className="font-semibold">Conditions are Stable</h3>
+      <p className="text-sm text-muted-foreground">No corrective actions are needed at this time.</p>
+    </div>
+  );
+
   const renderActions = () => {
     if (!actions || actions.length === 0) {
-      // This should ideally not be reached if the AI always provides actions.
-      // The skeleton loader will be shown instead while loading.
-      return null;
+      return renderEmptyState();
     }
 
     return (
@@ -144,7 +155,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
             <Lightbulb className="h-5 w-5 text-primary" />
             Recommended Actions
         </h2>
-        {isLoading ? renderSkeleton() : renderActions()}
+        {isLoading ? renderSkeleton() : (isUnstable ? renderActions() : renderEmptyState())}
     </div>
   )
 }

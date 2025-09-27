@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getAqiPrediction } from '@/app/actions';
 import { AlertCircle, AlertTriangle, BrainCircuit, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Zone, PredictedAlert } from '@/lib/types';
@@ -32,77 +31,82 @@ const riskStyles = {
     },
 };
 
+const MOCK_PREDICTIONS: Omit<PredictedAlert, 'predictedAqi' | 'confidence' | 'riskLevel'>[] = [
+    { metric: 'PM2.5', title: 'PM2.5 Levels May Rise', description: 'Anticipating a slight increase in particulate matter due to morning traffic.', timeframe: 'Next 1-2 hours' },
+    { metric: 'CO2', title: 'CO2 Spike Possible in Cafeteria', description: 'Increased occupancy during lunch hours may elevate CO2 levels.', timeframe: 'Next hour' },
+    { metric: 'General', title: 'Conditions to Remain Stable', description: 'No significant changes in air quality are expected in the near future.', timeframe: 'Next 2 hours' },
+    { metric: 'Noise', title: 'Noise Levels to Increase', description: 'Campus event scheduled, expect higher than normal noise levels.', timeframe: 'Next 3 hours' },
+    { metric: 'VOCs', title: 'Potential VOC Fluctuation', description: 'Science lab experiments may cause minor, temporary spikes in VOCs.', timeframe: 'Next 2 hours' },
+];
+
+const generateRandomAlerts = (): PredictedAlert[] => {
+    const alertCount = Math.random() > 0.3 ? 1 : 2; // 70% chance for 1 alert, 30% for 2
+    const alerts: PredictedAlert[] = [];
+    const usedIndexes = new Set();
+
+    for (let i = 0; i < alertCount; i++) {
+        let randomIndex = Math.floor(Math.random() * MOCK_PREDICTIONS.length);
+        while (usedIndexes.has(randomIndex)) {
+            randomIndex = Math.floor(Math.random() * MOCK_PREDICTIONS.length);
+        }
+        usedIndexes.add(randomIndex);
+
+        const baseAlert = MOCK_PREDICTIONS[randomIndex];
+        const isStableAlert = baseAlert.title.includes('Stable');
+        
+        let riskLevel: 'Low' | 'Medium' | 'High';
+        if (isStableAlert) {
+            riskLevel = 'Low';
+        } else {
+            const riskRoll = Math.random();
+            riskLevel = riskRoll > 0.8 ? 'High' : (riskRoll > 0.4 ? 'Medium' : 'Low');
+        }
+
+        alerts.push({
+            ...baseAlert,
+            riskLevel,
+            predictedAqi: 50 + Math.floor(Math.random() * 100),
+            confidence: 70 + Math.floor(Math.random() * 30),
+        });
+    }
+    return alerts;
+};
+
+
 export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) {
   const [predictions, setPredictions] = useState<PredictedAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
-    setIsLoading(true);
+    // Initial generation
+    setPredictions(generateRandomAlerts());
+    setIsLoading(false);
 
-    const fetchPrediction = async () => {
-      try {
-        const result = await getAqiPrediction(zone.name, zone.historicalData);
-        if (isMounted) {
-          setPredictions(result?.alerts ?? []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch AQI prediction:', error);
-        if (isMounted) {
-          setPredictions([]);
-        }
-      } finally {
-         if (isMounted) {
-            setIsLoading(false);
-         }
-      }
-    };
+    // Update every 5 seconds
+    const intervalId = setInterval(() => {
+      setPredictions(generateRandomAlerts());
+    }, 5000);
 
-    fetchPrediction(); // Fetch immediately on zone change
-
-    const intervalId = setInterval(fetchPrediction, 10000); // Refresh every 10 seconds
-
-    return () => {
-      isMounted = false;
-      clearInterval(intervalId);
-    };
-  }, [zone.id, zone.name]);
-
-  const renderSkeleton = () => (
-    <div className="space-y-4 pt-4">
-      {Array.from({ length: 2 }).map((_, i) => (
-        <div key={i} className="flex flex-col gap-2 rounded-lg border bg-muted p-4">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-5 w-3/5" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-          <Skeleton className="h-4 w-full mt-2" />
-          <Skeleton className="h-4 w-5/6" />
-          <div className="flex justify-between items-center mt-4">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-  
-  const renderEmptyState = () => (
-     <div className="text-center text-sm text-muted-foreground py-8">
-        <BrainCircuit className="mx-auto h-8 w-8 mb-2" />
-        Generating initial prediction...
-    </div>
-  );
+    return () => clearInterval(intervalId);
+  }, [zone.id]); // Rerun when zone changes
 
   const renderPredictions = () => {
+    if (predictions.length === 0) {
+        return (
+            <div className="text-center text-sm text-muted-foreground py-8">
+                <BrainCircuit className="mx-auto h-8 w-8 mb-2" />
+                No active predictions.
+            </div>
+        )
+    }
+
     return (
         <div className="space-y-4 pt-4">
             {predictions.map((p, index) => {
                 const styles = riskStyles[p.riskLevel];
                 const Icon = styles.icon;
                 return (
-                    <div key={index} className={cn("flex flex-col gap-1 rounded-lg border p-4", styles.card)}>
+                    <div key={`${zone.id}-${index}-${p.title}`} className={cn("flex flex-col gap-1 rounded-lg border p-4", styles.card)}>
                         <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-sm flex items-center gap-2">
                                 <Icon className={cn("h-5 w-5", styles.iconColor)} />
@@ -140,7 +144,7 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? renderEmptyState() : (predictions.length > 0 ? renderPredictions() : renderEmptyState())}
+        {isLoading ? <Skeleton className="h-24 w-full" /> : renderPredictions()}
       </CardContent>
     </Card>
   );
