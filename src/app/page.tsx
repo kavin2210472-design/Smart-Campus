@@ -57,7 +57,7 @@ export default function LoginPage() {
               <CardContent className="space-y-2">
                 <p className="text-sm text-muted-foreground">User: <span className="font-mono text-foreground">student</span></p>
                 <p className="text-sm text-muted-foreground">Pass: <span className="font-mono text-foreground">student123</span></p>
-                <Button onClick={() => handleLogin('student')} variant="secondary" className="w-full mt-4">
+                <Button onClick={() => handleLogin('student')} className="w-full mt-4">
                   Login as Student
                 </Button>
               </CardContent>
