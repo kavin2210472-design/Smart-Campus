@@ -36,12 +36,22 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
   useEffect(() => {
     const fetchActions = async () => {
       setIsLoading(true);
-      const result = await getCorrectiveActions(zone.name, zone.currentData);
-      setActions(result);
-      setIsLoading(false);
+      try {
+        const result = await getCorrectiveActions(zone.name, zone.currentData);
+        setActions(result);
+      } catch (error) {
+        console.error('Failed to fetch corrective actions:', error);
+        setActions([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    fetchActions();
+    fetchActions(); // Fetch immediately on zone change
+
+    const intervalId = setInterval(fetchActions, 30000); // And then every 30 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on component unmount or zone change
   }, [zone.id, zone.name, zone.currentData]);
 
   const renderSkeleton = () => (

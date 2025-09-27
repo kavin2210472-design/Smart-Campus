@@ -50,8 +50,12 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
       }
     };
 
-    fetchPrediction();
-  }, [zone.id, zone.name]);
+    fetchPrediction(); // Fetch immediately on zone change
+
+    const intervalId = setInterval(fetchPrediction, 30000); // And then every 30 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on component unmount or zone change
+  }, [zone.id, zone.name, zone.historicalData]);
 
   const renderSkeleton = () => (
     <div className="space-y-4 pt-4">
