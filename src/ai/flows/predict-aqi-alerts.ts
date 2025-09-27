@@ -30,7 +30,7 @@ const PredictedAlertSchema = z.object({
 });
 
 const PredictAqiAlertsOutputSchema = z.object({
-  alerts: z.array(PredictedAlertSchema).describe('A list of 0-2 predicted environmental alerts. Only include alerts for significant predicted events.'),
+  alerts: z.array(PredictedAlertSchema).describe('A list of 1-2 predicted environmental alerts. Only include alerts for significant predicted events.'),
 });
 export type PredictAqiAlertsOutput = z.infer<typeof PredictAqiAlertsOutputSchema>;
 
@@ -46,15 +46,15 @@ const predictAqiAlertsPrompt = ai.definePrompt({
   prompt: `You are an AI assistant specializing in predicting air quality and providing safety alerts for a smart campus.
 
   Based on the provided historical sensor data for the campus zone "{{zoneName}}", predict potential significant environmental events within the next 1-2 hours.
-  Generate between 0 and 2 alerts. Only create an alert if a metric (PM2.5, CO2, etc.) is predicted to enter a "Warning" or "Unsafe" state. If no significant events are predicted, return an empty list.
+  Generate between 1 and 2 alerts. If no major events are predicted, generate a "Low" risk informational alert about expected stability or minor fluctuations.
 
   For each prediction, provide the following:
   - metric: The primary metric concerned (e.g., 'PM2.5', 'CO2').
-  - title: A concise title for the alert (e.g., "PM2.5 Level Increase Expected").
-  - description: A clear, human-readable summary of the prediction, explaining what is expected to happen and why. Mention the predicted value range.
-  - predictedAqi: The estimated AQI value corresponding to the prediction.
-  - confidence: Your confidence in this prediction as a percentage (e.g., 85 for 85%).
-  - riskLevel: Classify the risk as 'Low', 'Medium', or 'High'.
+  - title: A concise title for the alert (e.g., "Stable Conditions Expected", "Minor PM2.5 Fluctuation Possible").
+  - description: A clear, human-readable summary of the prediction. If conditions are stable, state that. If there are minor fluctuations, describe them.
+  - predictedAqi: An estimated AQI value. For stable conditions, this can be close to the current average.
+  - confidence: Your confidence in this prediction as a percentage (e.g., 95 for 95%).
+  - riskLevel: Classify the risk as 'Low', 'Medium', or 'High'. For informational alerts, use 'Low'.
   - timeframe: The time window for the prediction (e.g., "Next 2 hours").
 
   Historical Data for "{{zoneName}}":
