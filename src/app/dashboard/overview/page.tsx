@@ -26,14 +26,14 @@ export default function OverviewPage() {
 
   if (isLoading || !stats) {
     return (
-      <div className="grid gap-8">
+      <div className="flex flex-col gap-4 lg:gap-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
         </div>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <Skeleton className="h-[450px]" />
           </div>
@@ -80,7 +80,7 @@ export default function OverviewPage() {
           description="Critical environmental events"
         />
       </div>
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <CampusMap zones={zones} />
         </div>

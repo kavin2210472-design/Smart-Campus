@@ -32,7 +32,7 @@ export default function AlertManagementPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 lg:gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Alert Management</h1>
@@ -89,8 +89,8 @@ export default function AlertManagementPage() {
         />
       </div>
 
-      <Tabs defaultValue="active-alerts">
-        <TabsList>
+      <Tabs defaultValue="active-alerts" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
           <TabsTrigger value="active-alerts" className="gap-2">
             <AlertTriangle className="h-4 w-4" />
             Active Alerts

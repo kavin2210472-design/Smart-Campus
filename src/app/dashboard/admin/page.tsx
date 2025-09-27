@@ -26,7 +26,7 @@ import LiveMonitoringTab from '@/components/dashboard/admin/live-monitoring-tab'
 
 export default function AdminPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 lg:gap-6">
       <div className="flex items-center gap-4">
         <div className="bg-primary/10 text-primary p-3 rounded-lg">
             <Settings className="h-8 w-8" />
@@ -82,8 +82,8 @@ export default function AdminPage() {
         />
       </div>
 
-      <Tabs defaultValue="system-health">
-        <TabsList>
+      <Tabs defaultValue="system-health" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 h-auto">
           <TabsTrigger value="system-health" className="gap-2">
             <Activity className="h-4 w-4" />
             System Health
