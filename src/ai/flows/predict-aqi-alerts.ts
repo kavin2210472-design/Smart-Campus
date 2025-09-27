@@ -1,3 +1,4 @@
+
 // src/ai/flows/predict-aqi-alerts.ts
 'use server';
 
@@ -45,13 +46,16 @@ const predictAqiAlertsPrompt = ai.definePrompt({
   output: {schema: PredictAqiAlertsOutputSchema},
   prompt: `You are an AI assistant specializing in predicting air quality and providing safety alerts for a smart campus.
 
-  Based on the provided historical sensor data for the campus zone "{{zoneName}}", predict potential significant environmental events within the next 1-2 hours.
-  Generate between 1 and 2 alerts. If no major events are predicted, generate a "Low" risk informational alert about expected stability or minor fluctuations.
+  Based on the provided historical sensor data for the campus zone "{{zoneName}}", you MUST predict potential environmental events within the next 1-2 hours and generate a list of 1-2 alerts.
+
+  CRITICAL INSTRUCTIONS:
+  - You MUST ALWAYS generate between 1 and 2 alerts. Never return an empty list.
+  - If no major events are predicted, you MUST generate a "Low" risk informational alert about expected stability or minor fluctuations. For example, "Conditions Expected to Remain Stable" or "Minor PM2.5 Fluctuation Possible".
 
   For each prediction, provide the following:
-  - metric: The primary metric concerned (e.g., 'PM2.5', 'CO2').
-  - title: A concise title for the alert (e.g., "Stable Conditions Expected", "Minor PM2.5 Fluctuation Possible").
-  - description: A clear, human-readable summary of the prediction. If conditions are stable, state that. If there are minor fluctuations, describe them.
+  - metric: The primary metric concerned (e.g., 'PM2.5', 'CO2', 'General'). For stable conditions, use 'General'.
+  - title: A concise title for the alert.
+  - description: A clear, human-readable summary of the prediction.
   - predictedAqi: An estimated AQI value. For stable conditions, this can be close to the current average.
   - confidence: Your confidence in this prediction as a percentage (e.g., 95 for 95%).
   - riskLevel: Classify the risk as 'Low', 'Medium', or 'High'. For informational alerts, use 'Low'.

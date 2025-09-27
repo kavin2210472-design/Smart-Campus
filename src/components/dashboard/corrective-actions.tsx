@@ -42,7 +42,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
     };
 
     fetchActions();
-  }, [zone.id, zone.name]);
+  }, [zone.id, zone.name, zone.currentData]);
 
   const renderSkeleton = () => (
     <div className="flex flex-col gap-4">
@@ -73,7 +73,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
       return (
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
-            No corrective actions suggested at this time.
+            Analyzing conditions...
           </CardContent>
         </Card>
       );

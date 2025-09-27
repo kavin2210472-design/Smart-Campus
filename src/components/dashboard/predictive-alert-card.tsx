@@ -77,8 +77,8 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
     if (predictions.length === 0) {
       return (
         <div className="text-center text-sm text-muted-foreground py-8">
-          <AlertCircle className="mx-auto h-8 w-8 mb-2" />
-          No significant AQI increase predicted in the next 2 hours.
+          <BrainCircuit className="mx-auto h-8 w-8 mb-2" />
+          Generating predictions...
         </div>
       );
     }

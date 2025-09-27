@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file defines a Genkit flow for suggesting corrective actions based on predicted AQI levels.
@@ -54,12 +55,12 @@ Based on the following real-time environmental data for zone "{{zoneName}}", you
 For each action, provide a title, a detailed description, a priority ('low', 'medium', 'high'), an estimated time to implement (ETA), the expected impact, and an appropriate icon name ('wind', 'thermometer', 'air-vent', 'lightbulb', 'fan').
 
 CRITICAL INSTRUCTIONS:
-- ALWAYS generate 3-4 actions. Never return an empty list.
+- You MUST ALWAYS generate 3-4 actions. Never return an empty list.
 - If values are good, suggest optimizations (e.g., "Slightly reduce fan speed to save energy while maintaining optimal CO2 levels").
 - If values are nearing a warning threshold, suggest preventative actions (e.g., "Preemptively increase ventilation as occupancy is rising").
 - If values are high, suggest immediate corrective actions (e.g., "Activate all HVAC units to maximum flow rate").
 - Be specific and creative. Instead of "Improve ventilation," suggest "Activate HVAC Unit B-3 to increase air circulation and reduce PM2.5 by an estimated 15%."
-- For any actions related to air purifiers, use the 'air-vent' icon.
+- For any actions related to air purifiers or ventilation, use the 'air-vent' icon.
 
 Current Sensor Data:
 - PM2.5: {{sensorData.pm25}} µg/m³
