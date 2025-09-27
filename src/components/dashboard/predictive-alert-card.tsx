@@ -53,10 +53,10 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
 
     fetchPrediction(); // Fetch immediately on zone change
 
-    const intervalId = setInterval(fetchPrediction, 30000); // And then every 30 seconds
+    const intervalId = setInterval(fetchPrediction, 10000); // And then every 10 seconds
 
     return () => clearInterval(intervalId); // Cleanup on component unmount or zone change
-  }, [zone.id, zone.name]); // Rerun effect only when zone ID changes
+  }, [zone.id]); // Rerun effect only when zone ID changes
 
   const renderSkeleton = () => (
     <div className="space-y-4 pt-4">
@@ -83,7 +83,7 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
       return (
         <div className="text-center text-sm text-muted-foreground py-8">
           <BrainCircuit className="mx-auto h-8 w-8 mb-2" />
-          No significant AQI increase predicted. Conditions are stable.
+          Generating initial prediction...
         </div>
       );
     }
