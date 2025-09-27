@@ -22,20 +22,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[450px] gap-8">
-          <div className="grid gap-2 text-center">
-            <div className="flex justify-center items-center gap-2 mb-4">
-              <EcoWatchLogo className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">EcoWatch Campus</h1>
+    <div className="relative min-h-screen w-full">
+        {loginBg && (
+          <Image
+            src={loginBg.imageUrl}
+            alt={loginBg.description}
+            fill
+            className="object-cover -z-10"
+            data-ai-hint={loginBg.imageHint}
+          />
+        )}
+        <div className="absolute inset-0 bg-black/50 -z-10" />
+        <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="grid gap-2 text-center text-white absolute top-8">
+                <div className="flex justify-center items-center gap-2 mb-2">
+                    <EcoWatchLogo className="h-8 w-8 text-primary" />
+                    <h1 className="text-3xl font-bold">EcoWatch Campus</h1>
+                </div>
+                <p className="text-balance text-muted-foreground">
+                    Smart environmental monitoring and alert system.
+                </p>
             </div>
-            <p className="text-balance text-muted-foreground">
-              Smart environmental monitoring and alert system.
-            </p>
-          </div>
 
-          <Card className="w-full max-w-md">
+            <Card className="w-full max-w-md bg-white/90 backdrop-blur-sm">
                 <CardHeader>
                     <CardTitle>Demonstration Login</CardTitle>
                     <CardDescription>Select a role to access the dashboard.</CardDescription>
@@ -74,21 +83,7 @@ export default function LoginPage() {
                     </div>
                 </CardContent>
             </Card>
-
         </div>
-      </div>
-      <div className="hidden bg-muted lg:block">
-        {loginBg && (
-          <Image
-            src={loginBg.imageUrl}
-            alt={loginBg.description}
-            width="1920"
-            height="1080"
-            className="h-full w-full object-cover"
-            data-ai-hint={loginBg.imageHint}
-          />
-        )}
-      </div>
     </div>
   );
 }
