@@ -60,6 +60,16 @@ const getUnit = (metric: MetricKey) => {
     }
 };
 
+const StatCard = ({ label, value, unit }: {label: string, value: number, unit: string}) => (
+    <div>
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="text-2xl font-bold">
+            {value.toFixed(label === 'Temperature' ? 1 : 0)}
+            <span className="text-base font-normal text-muted-foreground ml-1">{unit}</span>
+        </p>
+    </div>
+);
+
 
 export default function TrendAnalysis({ zone }: TrendAnalysisProps) {
   const [activeMetric, setActiveMetric] = useState<MetricKey>('pm25');
@@ -71,16 +81,6 @@ export default function TrendAnalysis({ zone }: TrendAnalysisProps) {
     peak: Math.max(...historicalData.map((d) => d[activeMetric])),
     minimum: Math.min(...historicalData.map((d) => d[activeMetric])),
   };
-
-  const StatCard = ({ label, value, unit }) => (
-    <div>
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="text-2xl font-bold">
-            {value.toFixed(label === 'Temperature' ? 1 : 0)}
-            <span className="text-base font-normal text-muted-foreground ml-1">{unit}</span>
-        </p>
-    </div>
-  );
 
   const handleExport = () => {
     const headers = ['timestamp', 'pm25', 'co2', 'voc', 'temperature', 'humidity', 'noise'];
