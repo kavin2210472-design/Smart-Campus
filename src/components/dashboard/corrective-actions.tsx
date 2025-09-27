@@ -40,6 +40,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
     
     if (!isUnstable) {
         setActions([]);
+        setIsLoading(false);
         return;
     }
 
