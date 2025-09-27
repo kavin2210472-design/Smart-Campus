@@ -9,6 +9,7 @@ import { EcoWatchLogo } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { AuthContext } from '@/context/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 export default function LoginPage() {
   const loginBg = PlaceHolderImages.find(p => p.id === 'login-bg-2');
@@ -34,35 +35,46 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Admin Login</CardTitle>
-                <CardDescription>Full access to all dashboards and system controls.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sm text-muted-foreground">User: <span className="font-mono text-foreground">admin</span></p>
-                <p className="text-sm text-muted-foreground">Pass: <span className="font-mono text-foreground">admin123</span></p>
-                <Button onClick={() => handleLogin('admin')} className="w-full mt-4">
-                  Login as Admin
-                </Button>
-              </CardContent>
+          <Card className="w-full max-w-md">
+                <CardHeader>
+                    <CardTitle>Demonstration Login</CardTitle>
+                    <CardDescription>Select a role to access the dashboard.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    {/* Admin Section */}
+                    <div className="space-y-4">
+                        <div>
+                            <h3 className="font-semibold">Admin User</h3>
+                            <p className="text-sm text-muted-foreground">Full access to all dashboards and system controls.</p>
+                        </div>
+                        <div className="space-y-2">
+                             <p className="text-sm text-muted-foreground">User: <span className="font-mono text-foreground">admin</span></p>
+                             <p className="text-sm text-muted-foreground">Pass: <span className="font-mono text-foreground">admin123</span></p>
+                        </div>
+                        <Button onClick={() => handleLogin('admin')} className="w-full">
+                          Login as Admin
+                        </Button>
+                    </div>
+
+                    <Separator />
+
+                    {/* Student Section */}
+                    <div className="space-y-4">
+                        <div>
+                            <h3 className="font-semibold">Student User</h3>
+                            <p className="text-sm text-muted-foreground">View-only access to public dashboards.</p>
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-sm text-muted-foreground">User: <span className="font-mono text-foreground">student</span></p>
+                            <p className="text-sm text-muted-foreground">Pass: <span className="font-mono text-foreground">student123</span></p>
+                        </div>
+                        <Button onClick={() => handleLogin('student')} className="w-full">
+                          Login as Student
+                        </Button>
+                    </div>
+                </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Login</CardTitle>
-                <CardDescription>View-only access to public dashboards.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sm text-muted-foreground">User: <span className="font-mono text-foreground">student</span></p>
-                <p className="text-sm text-muted-foreground">Pass: <span className="font-mono text-foreground">student123</span></p>
-                <Button onClick={() => handleLogin('student')} className="w-full mt-4">
-                  Login as Student
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
       <div className="hidden bg-muted lg:block">
