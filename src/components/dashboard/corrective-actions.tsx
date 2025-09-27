@@ -35,7 +35,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
 
   useEffect(() => {
     const fetchActions = async () => {
-      setIsLoading(true);
+      if (!actions) setIsLoading(true);
       try {
         const result = await getCorrectiveActions(zone.name, zone.currentData);
         setActions(result);
@@ -52,7 +52,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
     const intervalId = setInterval(fetchActions, 30000); // And then every 30 seconds
 
     return () => clearInterval(intervalId); // Cleanup on component unmount or zone change
-  }, [zone.id, zone.name, zone.currentData]);
+  }, [zone.id, zone.name]);
 
   const renderSkeleton = () => (
     <div className="flex flex-col gap-4">
@@ -83,7 +83,7 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
       return (
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
-            Analyzing conditions...
+            All systems are optimal. No immediate actions required.
           </CardContent>
         </Card>
       );

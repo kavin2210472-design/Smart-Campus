@@ -38,7 +38,8 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
 
   useEffect(() => {
     const fetchPrediction = async () => {
-      setIsLoading(true);
+      // Don't set loading to true on interval refreshes, only on initial load
+      if (!predictions.length) setIsLoading(true);
       try {
         const result = await getAqiPrediction(zone.name, zone.historicalData);
         setPredictions(result?.alerts ?? []);
@@ -55,7 +56,7 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
     const intervalId = setInterval(fetchPrediction, 30000); // And then every 30 seconds
 
     return () => clearInterval(intervalId); // Cleanup on component unmount or zone change
-  }, [zone.id, zone.name, zone.historicalData]);
+  }, [zone.id, zone.name]); // Rerun effect only when zone ID changes
 
   const renderSkeleton = () => (
     <div className="space-y-4 pt-4">
@@ -82,7 +83,7 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
       return (
         <div className="text-center text-sm text-muted-foreground py-8">
           <BrainCircuit className="mx-auto h-8 w-8 mb-2" />
-          Generating predictions...
+          No significant AQI increase predicted. Conditions are stable.
         </div>
       );
     }
