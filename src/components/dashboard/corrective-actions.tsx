@@ -34,16 +34,24 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+
     const fetchActions = async () => {
-      if (!actions) setIsLoading(true);
       try {
         const result = await getCorrectiveActions(zone.name, zone.currentData);
-        setActions(result);
+        if (isMounted) {
+          setActions(result);
+        }
       } catch (error) {
         console.error('Failed to fetch corrective actions:', error);
-        setActions([]);
+        if (isMounted) {
+          setActions([]); // Set to empty array on error
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -51,7 +59,10 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
 
     const intervalId = setInterval(fetchActions, 30000); // And then every 30 seconds
 
-    return () => clearInterval(intervalId); // Cleanup on component unmount or zone change
+    return () => {
+        isMounted = false;
+        clearInterval(intervalId);
+    }; // Cleanup on component unmount or zone change
   }, [zone.id, zone.name]);
 
   const renderSkeleton = () => (
@@ -80,13 +91,9 @@ export default function CorrectiveActions({ zone }: CorrectiveActionsProps) {
 
   const renderActions = () => {
     if (!actions || actions.length === 0) {
-      return (
-        <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
-            All systems are optimal. No immediate actions required.
-          </CardContent>
-        </Card>
-      );
+      // This should ideally not be reached if the AI always provides actions.
+      // The skeleton loader will be shown instead while loading.
+      return null;
     }
 
     return (

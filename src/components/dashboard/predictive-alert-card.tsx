@@ -38,7 +38,8 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
 
   useEffect(() => {
     let isMounted = true;
-    
+    setIsLoading(true);
+
     const fetchPrediction = async () => {
       try {
         const result = await getAqiPrediction(zone.name, zone.historicalData);
@@ -51,15 +52,13 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
           setPredictions([]);
         }
       } finally {
-         if (isMounted && isLoading) {
+         if (isMounted) {
             setIsLoading(false);
          }
       }
     };
 
-    // Set loading to true only when the zone ID changes
-    setIsLoading(true);
-    fetchPrediction(); // Fetch immediately
+    fetchPrediction(); // Fetch immediately on zone change
 
     const intervalId = setInterval(fetchPrediction, 10000); // Refresh every 10 seconds
 
@@ -67,7 +66,7 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
       isMounted = false;
       clearInterval(intervalId);
     };
-  }, [zone.id]);
+  }, [zone.id, zone.name]);
 
   const renderSkeleton = () => (
     <div className="space-y-4 pt-4">
@@ -88,17 +87,15 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
       ))}
     </div>
   );
+  
+  const renderEmptyState = () => (
+     <div className="text-center text-sm text-muted-foreground py-8">
+        <BrainCircuit className="mx-auto h-8 w-8 mb-2" />
+        Generating initial prediction...
+    </div>
+  );
 
   const renderPredictions = () => {
-    if (predictions.length === 0) {
-      return (
-        <div className="text-center text-sm text-muted-foreground py-8">
-          <BrainCircuit className="mx-auto h-8 w-8 mb-2" />
-          Generating initial prediction...
-        </div>
-      );
-    }
-
     return (
         <div className="space-y-4 pt-4">
             {predictions.map((p, index) => {
@@ -143,7 +140,7 @@ export default function PredictiveAlertCard({ zone }: PredictiveAlertCardProps) 
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? renderSkeleton() : renderPredictions()}
+        {isLoading ? renderEmptyState() : (predictions.length > 0 ? renderPredictions() : renderEmptyState())}
       </CardContent>
     </Card>
   );
