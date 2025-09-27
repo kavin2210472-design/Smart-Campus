@@ -122,7 +122,7 @@ export default function MetricCard({
         <p className="text-xs text-muted-foreground mb-2">
           WHO Limit: {THRESHOLDS[metric].limit} {unit}
         </p>
-        <Progress value={progressValue} className="h-2 mb-2" indicatorclassname={styles.progress} />
+        <Progress value={progressValue} className="h-2 mb-2" indicatorClassName={styles.progress} />
         <div className="flex justify-between items-center text-xs text-muted-foreground">
           <div className={cn('flex items-center', trend.color)}>
             <TrendIcon className="h-3 w-3 mr-1" />
@@ -137,9 +137,9 @@ export default function MetricCard({
   );
 }
 
-// Add this to the progress component to use the indicatorclassname
+// Add this to the progress component to use the indicatorClassName
 declare module "react" {
     interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-      indicatorclassname?: string;
+      indicatorClassName?: string;
     }
 }
